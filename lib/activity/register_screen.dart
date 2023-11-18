@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:db/activity/common/bottom_sheet.dart';
 import 'package:db/activity/common/registered_book.dart';
 import 'package:db/common/api/address.dart';
@@ -19,7 +20,21 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
+  TextEditingController bookNameCTR = TextEditingController();
+  TextEditingController bookPriceCTR = TextEditingController();
+  TextEditingController bookPublishDateCTR = TextEditingController();
+  TextEditingController bookPublisherCTR = TextEditingController();
+  String? bookName, bookOwner, bookPublisher, bookPublishedDate, classCode;
+  String? bookPrice, bookRGDate, className;
+  List<int> stateNum = [2, 2, 2, 2, 2, 2];
+  List<ValueChanged> onSliderChanged = [];
+  int sum = 0;
+  static const List<String> label = ['찢김', '하이라이트', '연필자국', '펜자국', '바램', '더러움'];
+  late DateTime today;
   late String? sessionID;
+  File? bookImage;
+
+  void tapOnBookPhoto() {}
   void onBookTap(bookCode) {}
   void onDonePressed() {}
   void refresh(val) {
@@ -28,22 +43,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     });
   }
 
-  TextEditingController bookNameCTR = TextEditingController();
-  TextEditingController bookPriceCTR = TextEditingController();
-  TextEditingController bookPublishDateCTR = TextEditingController();
-  TextEditingController bookPublisherCTR = TextEditingController();
-  String? bookName, bookOwner, bookPublisher, bookPublishedDate, classCode;
-  String? bookPrice, bookRGDate, bookImage, className;
-  static List<int>? stateNum;
-  final List<ValueChanged>? onSliderChanged = List.generate(
-    label.length,
-    (index) => (val) {
-      stateNum![index] = val;
-    },
-  );
-  static const List<String> label = ['찢김', '하이라이트', '연필자국', '펜자국', '바램', '더러움'];
-
-  late DateTime today;
   @override
   void initState() {
     today = DateTime(
@@ -51,6 +50,36 @@ class _RegisterScreenState extends State<RegisterScreen> {
       DateTime.now().month,
       DateTime.now().day,
     );
+    onSliderChanged.add((val) {
+      setState(() {
+        stateNum[0] = val;
+      });
+    });
+    onSliderChanged.add((val) {
+      setState(() {
+        stateNum[1] = val;
+      });
+    });
+    onSliderChanged.add((val) {
+      setState(() {
+        stateNum[2] = val;
+      });
+    });
+    onSliderChanged.add((val) {
+      setState(() {
+        stateNum[3] = val;
+      });
+    });
+    onSliderChanged.add((val) {
+      setState(() {
+        stateNum[4] = val;
+      });
+    });
+    onSliderChanged.add((val) {
+      setState(() {
+        stateNum[5] = val;
+      });
+    });
 
     super.initState();
   }
@@ -134,6 +163,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
           context: context,
           builder: (BuildContext context) {
             return FloatingSheet(
+              bookImage: bookImage,
+              tapOnBookPhoto: tapOnBookPhoto,
+              sum: sum,
               onSliderChanged: onSliderChanged,
               label: label,
               bookState: stateNum,

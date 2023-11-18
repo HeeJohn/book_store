@@ -2,33 +2,34 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 
-class ProfilePhoto extends StatelessWidget {
-  final void Function()? tapOnProfilePhoto;
-  final File? userImage;
-
-  const ProfilePhoto({
+class BookPhoto extends StatelessWidget {
+  final void Function()? tapOnBookPhoto;
+  final File? bookImage;
+  final String url;
+  final double height;
+  const BookPhoto({
     super.key,
-    required this.tapOnProfilePhoto,
-    required this.userImage,
+    required this.tapOnBookPhoto,
+    required this.bookImage,
+    required this.height,
+    required this.url,
   });
 
   /*------------- request photo access permission -----------------*/
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: tapOnProfilePhoto,
+      onTap: tapOnBookPhoto,
       child: Container(
         width: MediaQuery.of(context).size.width * 0.85,
-        height: 400,
+        height: height,
         alignment: Alignment.bottomCenter,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(40),
-          image: userImage == null
-              ? null
-              : DecorationImage(
-                  image: FileImage(userImage!),
-                  fit: BoxFit.cover,
-                ),
+          image: DecorationImage(
+            image: NetworkImage(url), //  FileImage(bookImage!),
+            fit: BoxFit.cover,
+          ),
         ),
         //Adds black gradient from bottom to top to image
         child: Container(

@@ -5,6 +5,7 @@ import 'package:db/common/api/address.dart';
 import 'package:db/common/api/request.dart';
 import 'package:db/common/local_storage/const.dart';
 import 'package:db/home/common/layout.dart';
+import 'package:db/home/sign.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
@@ -22,7 +23,7 @@ class _BookScreenState extends State<BookScreen> {
   File? _image;
   File? myImage;
   final picker = ImagePicker();
-  final String userImage =
+  final String book =
       "https://cdn.pixabay.com/photo/2018/04/27/03/50/portrait-3353699_1280.jpg";
   Future getImageFromGallery() async {
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
@@ -155,9 +156,11 @@ class _BookScreenState extends State<BookScreen> {
   @override
   Widget build(BuildContext context) {
     return MainLayout(children: [
-      ProfilePhoto(
-        tapOnProfilePhoto: tapOnPhoto,
-        userImage: myImage,
+      BookPhoto(
+        url: book,
+        height: 400,
+        tapOnBookPhoto: tapOnPhoto,
+        bookImage: myImage,
       ),
     ]);
   }

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class StateSlider extends StatelessWidget {
   final String label;
-  final ValueChanged onSliderChanged;
+  final void Function(double)? onSliderChanged;
   final double value;
   const StateSlider({
     super.key,
@@ -24,11 +24,12 @@ class StateSlider extends StatelessWidget {
           ),
         ),
         Slider(
-          divisions: 3,
+          divisions: 2,
           value: value,
           min: 1,
           max: 3,
           onChanged: onSliderChanged,
+          label: value == 1 ? '나쁨' : (value == 2 ? '보통' : '좋음'),
         ),
       ],
     );
