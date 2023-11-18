@@ -20,7 +20,7 @@ class _SearchScreenState extends State<SearchScreen> {
   late String? id;
   final int sizeOfTuple = 5; // temp
   late final int userMode;
-  late final String? sessionID;
+  late String? sessionID;
   late final List<int>? tableInfo;
 
   final String className = '항공우주학개론';
@@ -114,9 +114,11 @@ class _SearchScreenState extends State<SearchScreen> {
                       return ListTile(
                         title: Text(item),
                         onTap: () {
-                          setState(() {
-                            controller.closeView(item);
-                          });
+                          setState(
+                            () {
+                              controller.closeView(item);
+                            },
+                          );
                         },
                       );
                     },

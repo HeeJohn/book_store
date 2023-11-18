@@ -3,7 +3,7 @@ import 'package:db/home/splash.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'notification.dart';
+import 'local_notify.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});

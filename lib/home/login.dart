@@ -98,7 +98,8 @@ class _LogInScreenState extends State<LogInScreen> {
 
   Future<String?> login(String authInfo) async {
     final login = ApiService();
-    nextPage(searchScreen);
+    nextPage(bottomBar);
+    return null;
     final response = await login.getRequest(
       authInfo,
       splashURL,

@@ -19,7 +19,7 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
-  late final String? sessionID;
+  late String? sessionID;
   void onBookTap(bookCode) {}
 
   Future<List<RegisterdBook>?> getBookInfo() async {
@@ -59,7 +59,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           context: context,
           builder: (BuildContext context) {
             return FloatingSheet(
-              title: "시간표를 등록하세요",
+              title: "책을 등록하세요",
               onDonePressed: () {},
             );
           },
@@ -71,36 +71,33 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ),
       ),
       children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
-          child: Column(
-            children: [
-              const Text(
-                "등록된 책 리스트",
-                style: TextStyle(fontSize: 50, fontWeight: FontWeight.w800),
-              ),
-              FutureBuilder<List<RegisterdBook>?>(
-                future: getBookInfo(),
-                builder: (context, snapshot) {
-                  if (!snapshot.hasData) {
-                    return const BottomCircleProgressBar();
-                  }
+        const Text(
+          "등록된 책 리스트",
+          style: TextStyle(fontSize: 30, fontWeight: FontWeight.w800),
+        ),
+        Expanded(
+          child: FutureBuilder<List<RegisterdBook>?>(
+            future: getBookInfo(),
+            builder: (context, snapshot) {
+              if (!snapshot.hasData) {
+                return const BottomCircleProgressBar();
+              }
 
-                  if (snapshot.data == null) {
-                    return const TopImage();
-                  }
+              if (snapshot.data == null) {
+                return const Center(
+                  child: TopImage(),
+                );
+              }
 
-                  return ListView.builder(
-                    physics: const NeverScrollableScrollPhysics(),
-                    shrinkWrap: true,
-                    itemCount: snapshot.data!.length,
-                    itemBuilder: (BuildContext context, int index) {
-                      return snapshot.data![index];
-                    },
-                  );
+              return ListView.builder(
+                physics: const NeverScrollableScrollPhysics(),
+                shrinkWrap: true,
+                itemCount: snapshot.data!.length,
+                itemBuilder: (BuildContext context, int index) {
+                  return snapshot.data![index];
                 },
-              ),
-            ],
+              );
+            },
           ),
         ),
       ],

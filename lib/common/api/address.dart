@@ -12,6 +12,7 @@ const bookScreen = '/book';
 
 /*---------------- url --------------*/
 const registeredBookURL = '/registeredBook';
+const notifyURL = '/notify';
 const imageURL = '/image';
 const signUpURL = '/signup';
 const tableURL = '/table';

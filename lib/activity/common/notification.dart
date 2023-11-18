@@ -1,51 +1,33 @@
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter/material.dart';
 
-class FlutterLocalNotification {
-  FlutterLocalNotification._();
+class Notify extends StatelessWidget {
+  final String buyer;
+  final String price;
+  final String bookName;
 
-  static FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-      FlutterLocalNotificationsPlugin();
+  const Notify({
+    super.key,
+    required this.buyer,
+    required this.bookName,
+    required this.price,
+  });
 
-  static init() async {
-    AndroidInitializationSettings androidInitializationSettings =
-        const AndroidInitializationSettings('mipmap/ic_launcher');
-
-    DarwinInitializationSettings iosInitializationSettings =
-        const DarwinInitializationSettings(
-      requestAlertPermission: false,
-      requestBadgePermission: false,
-      requestSoundPermission: false,
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(
+          color: Colors.black,
+          width: 2,
+        ),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      width: MediaQuery.of(context).size.width,
+      height: 50,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [Text(buyer)],
+      ),
     );
-
-    InitializationSettings initializationSettings = InitializationSettings(
-      android: androidInitializationSettings,
-      iOS: iosInitializationSettings,
-    );
-
-    await flutterLocalNotificationsPlugin.initialize(initializationSettings);
-  }
-
-  static requestNotificationPermission() {
-    flutterLocalNotificationsPlugin
-        .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
-        ?.requestPermission();
-  }
-
-  static Future<void> showNotification() async {
-    print('push alarmmmm -==================================');
-    const AndroidNotificationDetails androidNotificationDetails =
-        AndroidNotificationDetails('channel id', 'channel name',
-            channelDescription: 'channel description',
-            importance: Importance.max,
-            priority: Priority.max,
-            showWhen: true);
-
-    const NotificationDetails notificationDetails = NotificationDetails(
-        android: androidNotificationDetails,
-        iOS: DarwinNotificationDetails(badgeNumber: 1));
-
-    await flutterLocalNotificationsPlugin.show(
-        0, 'test title', 'test body', notificationDetails);
   }
 }

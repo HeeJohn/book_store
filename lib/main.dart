@@ -2,6 +2,7 @@ import 'package:db/activity/common/bottom_bar.dart';
 import 'package:db/activity/common/book.dart';
 import 'package:db/activity/meet_up_screen.dart';
 import 'package:db/activity/register_screen.dart';
+import 'package:db/activity/search_screen.dart';
 import 'package:db/common/api/address.dart';
 import 'package:db/common/hive/user.dart';
 import 'package:db/home/login.dart';
@@ -32,6 +33,7 @@ class BookStore extends StatelessWidget {
         splashScreen: (context) => const SplashScreen(),
         loginScreen: (context) => const LogInScreen(),
         signUpScreen: (context) => const SignUpScreen(),
+        searchScreen: (context) => const SearchScreen(),
         bottomBar: (context) => const BottomBar(),
         registerScreen: (context) => const RegisterScreen(),
         meetUpScreen: (context) => const MeetUpScreen(),
