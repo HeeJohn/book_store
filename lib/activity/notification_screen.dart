@@ -127,20 +127,6 @@ class Notify extends StatelessWidget {
               ],
             ),
           ),
-          Expanded(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                IconButton(
-                  onPressed: onPressed,
-                  icon: const Icon(Icons.check_circle_outline),
-                ),
-                const Text(
-                  '수락',
-                ),
-              ],
-            ),
-          ),
           const Expanded(
             child: Column(
               children: [
@@ -149,6 +135,46 @@ class Notify extends StatelessWidget {
                 ),
                 Text(
                   '구매요청',
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      IconButton(
+                        onPressed: onPressed,
+                        icon: const Icon(
+                          Icons.check_circle_outline,
+                          color: Colors.blue,
+                        ),
+                      ),
+                      const Text(
+                        '수락',
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      IconButton(
+                        onPressed: onPressed,
+                        icon: const Icon(
+                          Icons.check_circle,
+                          color: Colors.red,
+                        ),
+                      ),
+                      const Text(
+                        '거절',
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),

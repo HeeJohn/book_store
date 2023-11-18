@@ -42,6 +42,7 @@ class _MeetUpListState extends State<MeetUpList> {
         child: Padding(
           padding: const EdgeInsets.symmetric(
             vertical: 10,
+            horizontal: 10,
           ),
           child: FutureBuilder<String?>(
               future: getList(),
