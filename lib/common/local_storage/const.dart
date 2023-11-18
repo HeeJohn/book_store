@@ -12,3 +12,4 @@ const nameLS = 'USER_NAME';
 const studentIDLS = 'STUDENT_ID';
 const phoneNumberLS = 'PHONE_NUMBER';
 const passwordLS = 'PASSWORD';
+const sessionIDLS = 'sessionID';

@@ -1,6 +1,7 @@
-import 'package:db/activity/bottom_bar.dart';
-import 'package:db/activity/meet_up.dart';
-import 'package:db/activity/register.dart';
+import 'package:db/activity/common/bottom_bar.dart';
+import 'package:db/activity/common/book.dart';
+import 'package:db/activity/meet_up_screen.dart';
+import 'package:db/activity/register_screen.dart';
 import 'package:db/common/api/address.dart';
 import 'package:db/common/hive/user.dart';
 import 'package:db/home/login.dart';
@@ -10,10 +11,10 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 Future<void> main() async {
-  // WidgetsFlutterBinding.ensureInitialized();
-  // await Hive.initFlutter();
-  // Hive.registerAdapter(UserDataAdapter());
-  // await Hive.openBox<UserData>('loggedUser');
+  WidgetsFlutterBinding.ensureInitialized();
+  await Hive.initFlutter();
+  Hive.registerAdapter(UserDataAdapter());
+  await Hive.openBox<UserData>('loggedUser');
 
   runApp(const BookStore());
 }
@@ -34,6 +35,7 @@ class BookStore extends StatelessWidget {
         bottomBar: (context) => const BottomBar(),
         registerScreen: (context) => const RegisterScreen(),
         meetUpScreen: (context) => const MeetUpScreen(),
+        bookScreen: (context) => const BookScreen(),
       },
     );
   }

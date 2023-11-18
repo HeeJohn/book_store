@@ -1,11 +1,9 @@
+import 'dart:convert';
 import 'package:db/common/api/address.dart';
 import 'package:db/common/api/request.dart';
 import 'package:db/common/custom_textform.dart';
-import 'package:db/common/hive/boxes.dart';
-import 'package:db/common/hive/user.dart';
-import 'package:db/common/local_storage/const.dart';
 import 'package:db/home/common/layout.dart';
-import 'package:dio/dio.dart';
+import 'package:db/home/splash.dart';
 import 'package:flutter/material.dart';
 import 'package:db/common/regular_expression.dart';
 
@@ -98,43 +96,20 @@ class _LogInScreenState extends State<LogInScreen> {
     );
   }
 
-  // void getPersonalInfo(Response<dynamic>? response) async {
-  //   if (response != null) {
-  //     final phoneNumber = response.data['phone'];
-  //     await storage.write(key: phoneNumberLS, value: phoneNumber);
-
-  //     UserData loggedUser = UserData(
-  //         name: response.data['nickname'],
-  //         userName: "John Doe",
-  //         phoneNumber: phoneNumber,
-  //         dob: "21",
-  //         bio: "",
-  //         hobbies: ["Programming", "Travelling"]);
-
-  //     final box1 = Boxes.getUserData();
-  //     //To check if user is previously cached or not
-  //     final isUserPreviouslyCached = box1.get(response.data['phone']);
-  //     isUserPreviouslyCached != null ? null : box1.put(phoneNumber, loggedUser);
-
-  //     print(
-  //         '=================from loginscreen: ${box1.get(phoneNumber)?.name}');
-  //   }
-  // }
-
-  void login() async {
-    final login = PreApiService();
-    final response = await login.request(
-      '$id:$password',
-      logInURL,
+  Future<String?> login(String authInfo) async {
+    final login = ApiService();
+    nextPage(searchScreen);
+    final response = await login.getRequest(
+      authInfo,
+      splashURL,
     );
     final message = await login.reponseMessageCheck(response);
-
-    if (message == 'success') {
-      nextPage(bottomBar);
+    if ('success' == message) {
+      saveUserInfo(jsonDecode(response!.data)['loggedUser']);
+      nextPage(searchScreen);
+      return null;
     } else {
-      setState(() {
-        errorText = message;
-      });
+      return message;
     }
   }
 
@@ -149,14 +124,12 @@ class _LogInScreenState extends State<LogInScreen> {
   void validInputCheck() {
     if (_formKeyId.currentState!.validate() &&
         _formKeyPassword.currentState!.validate()) {
-      nextPage(bottomBar);
-      //login();
+      login('$id:$password');
     } else {
-      setState(() {}); // Refresh the UI to show validation errors.
+      setState(() {});
     }
   }
 
-  // Called when the ID input value changes.
   void onIdChanged(String value) {
     setState(() {
       if (_formKeyId.currentState!.validate()) {
@@ -167,15 +140,9 @@ class _LogInScreenState extends State<LogInScreen> {
       }
 
       id = value;
-
-      // Scroll to top when ID input is focused
-      if (_phoneNumFocusNode.hasFocus) {
-        scrollToTop();
-      }
     });
   }
 
-  // Called when the password input value changes.
   void onPasswordChanged(String value) {
     setState(() {
       if (_formKeyPassword.currentState!.validate()) {
@@ -186,11 +153,6 @@ class _LogInScreenState extends State<LogInScreen> {
       }
 
       password = value;
-
-      // Scroll to bottom when password input is focused
-      if (_passwordFocusNode.hasFocus) {
-        scrollToBottom();
-      }
     });
   }
 

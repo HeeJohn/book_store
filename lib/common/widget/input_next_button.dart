@@ -1,6 +1,4 @@
-import 'package:db/common/custom_textform.dart';
 import 'package:flutter/material.dart';
-import 'next_button.dart';
 
 class BottomField extends StatelessWidget {
   final String hintText;

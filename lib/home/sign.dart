@@ -1,4 +1,5 @@
 import 'package:db/common/api/address.dart';
+import 'package:db/common/api/request.dart';
 import 'package:db/common/custom_textform.dart';
 import 'package:db/common/local_storage/const.dart';
 import 'package:db/common/widget/next_button.dart';
@@ -18,7 +19,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   bool hasError = false;
   int index = 0;
-  dynamic input;
+  late final Map<String, String> inputList;
   late final Map<String, List<dynamic>> signUpList;
   final textController = TextEditingController();
 
@@ -71,11 +72,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
         validatorStudentID,
         validatorPW,
       ],
-      'storage': [
-        phoneNumberLS,
-        nameLS,
-        studentIDLS,
-        passwordLS,
+      'type': [
+        'phone',
+        'name',
+        'id',
+        'password',
       ],
     };
   }
@@ -113,13 +114,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
   // Check if the form input is valid and proceed accordingly.
   void validInputCheck() async {
     if (_formKey.currentState!.validate()) {
-      await storage.write(
-          key: signUpList['storage']![index],
-          value: textController.value.text.toString());
-      textController.clear();
+      inputList.update(signUpList['type']![index],
+          ((value) => textController.text.toString()));
       if (index == 3) {
-        nextPage();
+        await storage.write(
+          key: passwordLS,
+          value: textController.value.text.toString(),
+        );
+        signUp();
       }
+      textController.clear();
       index = (index + 1) % 4;
     }
     setState(() {});
@@ -127,6 +131,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   void nextPage() {
     Navigator.pushNamedAndRemoveUntil(context, loginScreen, (route) => false);
+  }
+
+  void signUp() async {
+    final sign = ApiService();
+    final response = await sign.postRequest('signup', signUpURL, inputList);
+    if ('success' == await sign.reponseMessageCheck(response)) {
+      nextPage();
+    } else {
+      debugPrint('error sending singup info to the server');
+    }
   }
 
   @override

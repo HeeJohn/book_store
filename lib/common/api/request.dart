@@ -1,26 +1,39 @@
 import 'dart:convert';
-import 'dart:io';
+
 import 'package:db/common/api/address.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 
-class PreApiService {
-  final ip = Platform.isAndroid ? androidEmulatorIP : iosSimulatorIP;
+class ApiService {
+  final ip = androidEmulatorIP;
   final dio = Dio();
 
   /* ===================== basic login& signin request ==================== */
-
-  // Method to make a POST request with basic authentication
-  Future<Response?> request(String userInfo, String toUrl) async {
+  Future<Response?> postRequest(
+      String sessionID, String toUrl, dynamic data) async {
     try {
-      Codec<String, String> stringToBase64 = utf8.fuse(base64);
-      String token = stringToBase64.encode(userInfo);
+      final Response<dynamic> response = await dio.post(ip + toUrl,
+          options: Options(
+            headers: {
+              "authorization": 'Basic $sessionID',
+            },
+          ),
+          data: data);
 
+      return response;
+    } on DioException catch (e) {
+      debugPrint(e.message);
+      return null;
+    }
+  }
+
+  Future<Response?> getRequest(String sessionID, String toUrl) async {
+    try {
       final Response<dynamic> response = await dio.post(
         ip + toUrl,
         options: Options(
           headers: {
-            "authorization": 'Basic $token',
+            "authorization": 'Basic $sessionID',
           },
         ),
       );
@@ -31,28 +44,6 @@ class PreApiService {
       return null;
     }
   }
-
-  // Method to make a POST request with basic authentication
-  Future<Response?> requestWithTokenForSplash(
-      String accessToken, String toUrl) async {
-    try {
-      final Response<dynamic> response = await dio.post(
-        ip + toUrl,
-        options: Options(
-          headers: {
-            "authorization": 'Bearer $accessToken',
-          },
-        ),
-      );
-
-      return response;
-    } on DioException catch (e) {
-      debugPrint(e.message);
-      return null;
-    }
-  }
-
-  /* ===================== basic ==================== */
 
 /* ============================ error Check =========================== */
   // Method to check response message errors
@@ -60,9 +51,9 @@ class PreApiService {
     if (response == null) {
       return 'error';
     }
-
     if (response.statusCode == 200) {
-      String data = response.data['message'];
+      dynamic res = jsonDecode(response.data);
+      String data = res['message'];
       switch (data) {
         case 'login done':
         case 'signup done':

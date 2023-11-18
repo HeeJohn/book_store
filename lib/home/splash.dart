@@ -1,7 +1,11 @@
 import 'dart:async';
-import 'package:db/activity/bottom_bar.dart';
+import 'dart:convert';
+import 'package:db/activity/common/bottom_bar.dart';
 import 'package:db/common/api/address.dart';
-import 'package:db/common/api/token_request.dart';
+import 'package:db/common/api/models/user_model.dart';
+import 'package:db/common/api/request.dart';
+import 'package:db/common/hive/boxes.dart';
+import 'package:db/common/hive/user.dart';
 import 'package:db/common/local_storage/const.dart';
 import 'package:db/home/common/layout.dart';
 import 'package:db/home/common/top_image.dart';
@@ -17,19 +21,13 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen> {
   @override
-  void initState() {
-    super.initState();
-    getToken();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return FutureBuilder<String?>(
-        future: getToken(),
+    return FutureBuilder<String>(
+        future: checkLoginInfo(),
         builder: (context, snapshot) {
           if (snapshot.hasData) {
             if (snapshot.data!.isEmpty) {
-              throw Exception("Error, Splash Screen : no data received ");
+              throw Exception(snapshot.data);
             } else if (snapshot.data == "success") {
               return const BottomBar();
             } else {
@@ -47,40 +45,49 @@ class _SplashScreenState extends State<SplashScreen> {
         });
   }
 
-  /*========================== method ==========================*/
-  Future<String?> getToken() async {
-    final accessToken = await storage.read(key: accessTokenKeyLS);
-    if (accessToken != null) {
-      //  return login(accessToken);
-    } else {
-      //   nextPage(homeScreen);
-    }
-    scheduleTimeout(5 * 1000); // 5 seconds.
-    return null;
-  }
-
-  // Go to the next page
   void nextPage(String page) {
     Navigator.pushNamed(context, page);
   }
 
-  Timer scheduleTimeout([int milliseconds = 10000]) =>
-      Timer(Duration(milliseconds: milliseconds), handleTimeout);
-
-  void handleTimeout() {
+  Future<String> checkLoginInfo() async {
+    final phoneNum = await storage.read(key: phoneNumberLS);
+    final password = await storage.read(key: passwordLS);
     nextPage(loginScreen);
+    if (phoneNum != null && password != null) {
+      await login('$phoneNum:$password');
+    }
+    nextPage(loginScreen);
+
+    return '';
   }
 
-  Future<String?> login(String accessToken) async {
+  Future<void> login(String authInfo) async {
     final login = ApiService();
 
-    final response = await login.splahsWithToken(
-      accessToken,
+    final response = await login.getRequest(
+      authInfo,
       splashURL,
     );
-    final message = await login.tokenReponseCheck(response);
-    return message;
+
+    if ('success' == await login.reponseMessageCheck(response)) {
+      saveUserInfo(jsonDecode(response!.data)['loggedUser']);
+      nextPage(searchScreen);
+    }
   }
+}
+
+void saveUserInfo(dynamic data) async {
+  StudentModel student = StudentModel.fromJson(data);
+  UserData loggedUser = UserData(
+    studentID: student.studentID,
+    studentName: student.studentName,
+    studentPhoneNum: student.studentPhoneNum,
+    sessionID: student.sessionID,
+  );
+  //cache check
+  final box1 = Boxes.getUserData();
+  final isUserPreviouslyCached = box1.get(student.studentPhoneNum);
+  isUserPreviouslyCached ?? box1.put(student.studentPhoneNum, loggedUser);
 }
 
 class BottomCircleProgressBar extends StatelessWidget {
