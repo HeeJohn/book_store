@@ -7,7 +7,6 @@ import 'package:db/common/api/request.dart';
 import 'package:db/common/const/color.dart';
 import 'package:db/common/local_storage/const.dart';
 import 'package:db/home/common/layout.dart';
-import 'package:db/home/sign.dart';
 import 'package:db/home/splash.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -23,13 +22,27 @@ class _RegisterScreenState extends State<RegisterScreen> {
   late String? sessionID;
   void onBookTap(bookCode) {}
   void onDonePressed() {}
+  void refresh(val) {
+    setState(() {
+      className = val;
+    });
+  }
+
   TextEditingController bookNameCTR = TextEditingController();
   TextEditingController bookPriceCTR = TextEditingController();
   TextEditingController bookPublishDateCTR = TextEditingController();
   TextEditingController bookPublisherCTR = TextEditingController();
   String? bookName, bookOwner, bookPublisher, bookPublishedDate, classCode;
-  String? bookPrice, bookRGDate, bookImage;
-  List<int>? stateNum;
+  String? bookPrice, bookRGDate, bookImage, className;
+  static List<int>? stateNum;
+  final List<ValueChanged>? onSliderChanged = List.generate(
+    label.length,
+    (index) => (val) {
+      stateNum![index] = val;
+    },
+  );
+  static const List<String> label = ['찢김', '하이라이트', '연필자국', '펜자국', '바램', '더러움'];
+
   late DateTime today;
   @override
   void initState() {
@@ -121,6 +134,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
           context: context,
           builder: (BuildContext context) {
             return FloatingSheet(
+              onSliderChanged: onSliderChanged,
+              label: label,
+              bookState: stateNum,
+              className: className,
+              refresh: refresh,
               comController: bookPublisherCTR,
               nameController: bookNameCTR,
               priceController: bookPriceCTR,
