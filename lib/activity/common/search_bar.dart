@@ -1,13 +1,24 @@
 import 'package:db/common/const/color.dart';
 import 'package:flutter/material.dart';
 
-class Search extends StatelessWidget {
+class Search extends StatefulWidget {
   final VoidCallback onItemTap;
+  final SearchController controller;
+  final void Function(String)? onChanged;
+  final VoidCallback onBarTap;
   const Search({
     super.key,
     required this.onItemTap,
+    required this.onBarTap,
+    required this.controller,
+    required this.onChanged,
   });
 
+  @override
+  State<Search> createState() => _SearchState();
+}
+
+class _SearchState extends State<Search> {
   @override
   Widget build(BuildContext context) {
     return SearchAnchor(
@@ -30,12 +41,8 @@ class Search extends StatelessWidget {
           padding: const MaterialStatePropertyAll<EdgeInsets>(
             EdgeInsets.only(right: 16),
           ),
-          onTap: () {
-            controller.openView();
-          },
-          onChanged: (_) {
-            controller.openView();
-          },
+          onTap: widget.onBarTap,
+          onChanged: widget.onChanged,
           leading: Container(
             color: const Color.fromARGB(255, 223, 223, 223),
             width: 60,
@@ -54,7 +61,7 @@ class Search extends StatelessWidget {
             final String item = 'item $index';
             return ListTile(
               title: Text(item),
-              onTap: onItemTap,
+              onTap: widget.onItemTap,
             );
           },
         );

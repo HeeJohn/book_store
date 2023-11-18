@@ -11,6 +11,7 @@ import 'package:db/home/common/layout.dart';
 import 'package:db/home/common/top_image.dart';
 import 'package:db/home/login.dart';
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -26,7 +27,7 @@ class _SplashScreenState extends State<SplashScreen> {
         future: checkLoginInfo(),
         builder: (context, snapshot) {
           if (snapshot.hasData) {
-            if (snapshot.data!.isEmpty) {
+            if (snapshot.data == null) {
               throw Exception(snapshot.data);
             } else if (snapshot.data == "success") {
               return const BottomBar();
@@ -52,27 +53,24 @@ class _SplashScreenState extends State<SplashScreen> {
   Future<String> checkLoginInfo() async {
     final phoneNum = await storage.read(key: phoneNumberLS);
     final password = await storage.read(key: passwordLS);
-    nextPage(loginScreen);
-    if (phoneNum != null && password != null) {
-      await login('$phoneNum:$password');
-    }
+
+    // if (phoneNum != null && password != null) {
+    //   return await login('$phoneNum:$password');
+    // }
     nextPage(loginScreen);
 
-    return '';
+    return 'success';
   }
 
-  Future<void> login(String authInfo) async {
+  Future<String> login(String authInfo) async {
     final login = ApiService();
 
     final response = await login.getRequest(
       authInfo,
       splashURL,
     );
-
-    if ('success' == await login.reponseMessageCheck(response)) {
-      saveUserInfo(jsonDecode(response!.data)['loggedUser']);
-      nextPage(searchScreen);
-    }
+    saveUserInfo(jsonDecode(response!.data)['loggedUser']);
+    return await login.reponseMessageCheck(response);
   }
 }
 
@@ -84,10 +82,10 @@ void saveUserInfo(dynamic data) async {
     studentPhoneNum: student.studentPhoneNum,
     sessionID: student.sessionID,
   );
-  //cache check
+
   final box1 = Boxes.getUserData();
-  final isUserPreviouslyCached = box1.get(student.studentPhoneNum);
-  isUserPreviouslyCached ?? box1.put(student.studentPhoneNum, loggedUser);
+  final isUserPreviouslyCached = box1.get(student.sessionID);
+  isUserPreviouslyCached ?? box1.put(student.sessionID, loggedUser);
 }
 
 class BottomCircleProgressBar extends StatelessWidget {

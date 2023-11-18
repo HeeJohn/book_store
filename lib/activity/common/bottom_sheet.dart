@@ -3,12 +3,14 @@ import 'package:flutter/material.dart';
 
 class FloatingSheet extends StatelessWidget {
   final String title;
-
   final VoidCallback onDonePressed;
+  final Widget? search;
+
   const FloatingSheet({
     super.key,
     required this.title,
     required this.onDonePressed,
+    this.search,
   });
 
   @override
@@ -53,11 +55,13 @@ class FloatingSheet extends StatelessWidget {
                 ],
               ),
             ),
-            const Expanded(
+            Expanded(
               child: SingleChildScrollView(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [],
+                  children: [
+                    search!,
+                  ],
                 ),
               ),
             ),

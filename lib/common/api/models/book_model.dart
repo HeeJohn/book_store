@@ -1,15 +1,17 @@
-class RegisteredBookModel {
+class BookModel {
   final String bookName, bookOwner, bookPublisher, bookPublishedDate, classCode;
-  final String bookPrice;
+  final String bookPrice, bookRGDate, bookImage;
   final BookState bookState;
 
-  RegisteredBookModel.fromJson(Map<String, dynamic> json)
+  BookModel.fromJson(Map<String, dynamic> json)
       : bookName = json['booK_name'],
         bookOwner = json['book_owner'],
         bookPublisher = json['book_publisher'],
         bookPrice = json['book_price'],
         bookPublishedDate = json['book_published_date'],
         classCode = json['class_code'],
+        bookRGDate = json['book_rg_date'],
+        bookImage = json['book_image'],
         bookState = BookState(
           stateNum: json['book_state'],
         );

@@ -1,11 +1,12 @@
-import 'package:db/activity/common/bottm_sheet.dart';
-import 'package:db/activity/common/round_small_btn.dart';
+import 'package:db/activity/common/bottom_sheet.dart';
+import 'package:db/activity/common/search_bar.dart';
 import 'package:db/common/api/address.dart';
 import 'package:db/common/api/models/class_model.dart';
 import 'package:db/common/api/request.dart';
 import 'package:db/common/const/color.dart';
+import 'package:db/common/hive/boxes.dart';
+import 'package:db/common/hive/user.dart';
 import 'package:db/common/local_storage/const.dart';
-import 'package:db/home/splash.dart';
 import 'package:flutter/material.dart';
 
 class SearchScreen extends StatefulWidget {
@@ -16,26 +17,58 @@ class SearchScreen extends StatefulWidget {
 }
 
 class _SearchScreenState extends State<SearchScreen> {
-  late String? name;
-  late String? id;
+  String? name;
+  int? id;
   final int sizeOfTuple = 5; // temp
   late final int userMode;
-  late String? sessionID;
+  String? sessionID;
   late final List<int>? tableInfo;
-
-  final String className = '항공우주학개론';
-  late final String professor = '백효영';
-  late final String classTime = '화 5-6';
-  late final String classLoc = '이학관 203호';
-
+  final SearchController controller = SearchController();
+  final SearchController tableController = SearchController();
   @override
   void initState() {
-    getInfo();
+    getStudentInfo();
     super.initState();
   }
 
-  Future<List<ClassModel>?> getInfo() async {
-    sessionID = await storage.read(key: sessionIDLS);
+  void onBarTap() {
+    setState(() {
+      controller.openView();
+    });
+  }
+
+  void onChanged(_) {
+    setState(() {
+      controller.openView();
+    });
+  }
+
+  void onItemTap() {
+    setState(() {
+      controller.openView();
+    });
+  }
+
+  void onTableItemTap() {
+    setState(() {
+      tableController.openView();
+    });
+  }
+
+  void onTableBarTap() {
+    setState(() {
+      tableController.openView();
+    });
+  }
+
+  void onTableChanged(_) {
+    setState(() {
+      tableController.openView();
+    });
+    return;
+  }
+
+  Future<List<ClassModel>?> getTableInfo() async {
     ApiService classInfo = ApiService();
     if (sessionID != null) {
       final response = await classInfo.getRequest(sessionID!, tableURL);
@@ -45,6 +78,21 @@ class _SearchScreenState extends State<SearchScreen> {
     }
 
     return null;
+  }
+
+  void getStudentInfo() async {
+    name = '백효영';
+    id = 201901366;
+    sessionID = await storage.read(key: sessionIDLS);
+    if (sessionID == null) {
+      final box = Boxes.getUserData();
+
+      UserData? student = box.get(sessionID);
+      if (student != null) {
+        name = student.studentName;
+        id = student.studentID;
+      }
+    }
   }
 
   void onDonePressed() async {
@@ -68,158 +116,124 @@ class _SearchScreenState extends State<SearchScreen> {
           elevation: 0,
           actions: [
             Expanded(
-              child: SearchAnchor(
-                builder: (BuildContext context, SearchController controller) {
-                  return SearchBar(
-                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                      RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10.0),
-                        side: const BorderSide(
-                          color: Colors.grey,
-                          width: 1,
-                        ),
-                      ),
-                    ),
-                    elevation: MaterialStateProperty.all<double>(0.0),
-                    backgroundColor: MaterialStateProperty.all<Color>(
-                      const Color.fromARGB(255, 255, 255, 255),
-                    ),
-                    controller: controller,
-                    padding: const MaterialStatePropertyAll<EdgeInsets>(
-                      EdgeInsets.only(right: 16),
-                    ),
-                    onTap: () {
-                      controller.openView();
-                    },
-                    onChanged: (_) {
-                      controller.openView();
-                    },
-                    leading: Container(
-                      color: const Color.fromARGB(255, 223, 223, 223),
-                      width: 60,
-                      height: 60,
-                      child: const Icon(
-                        Icons.search,
-                        color: grey,
-                      ),
-                    ),
-                  );
-                },
-                suggestionsBuilder:
-                    (BuildContext context, SearchController controller) {
-                  return List<ListTile>.generate(
-                    5,
-                    (int index) {
-                      final String item = 'item $index';
-                      return ListTile(
-                        title: Text(item),
-                        onTap: () {
-                          setState(
-                            () {
-                              controller.closeView(item);
-                            },
-                          );
-                        },
-                      );
-                    },
-                  );
-                },
+              child: Search(
+                controller: controller,
+                onChanged: onChanged,
+                onBarTap: onBarTap,
+                onItemTap: onItemTap,
               ),
             ),
           ],
         ),
-        body: FutureBuilder<List<ClassModel>?>(
-          future: getInfo(),
-          builder: (context, snapshot) {
-            if (!snapshot.hasData) {
-              return const Center(
-                child: SizedBox(
-                  width: 200,
-                  height: 200,
-                  child: BottomCircleProgressBar(),
-                ),
-              );
-            }
-            if (snapshot.data == null) {
-              return Center(
-                child: SizedBox(
-                  width: 200,
-                  height: 200,
-                  child: IconButton(
-                    onPressed: () => showModalBottomSheet(
-                      isScrollControlled: true,
-                      context: context,
-                      builder: (BuildContext context) {
-                        return FloatingSheet(
-                          title: "시간표를 등록하세요",
-                          onDonePressed: () {},
-                        );
-                      },
-                      shape: const RoundedRectangleBorder(
-                        borderRadius: BorderRadius.vertical(
-                          top: Radius.circular(30),
-                        ),
+        body: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 10,
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Column(
+                  children: [
+                    const SizedBox(
+                      height: 20,
+                    ),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: grey,
+                        borderRadius: BorderRadius.circular(1000),
+                      ),
+                      width: 150,
+                      height: 150,
+                      child: const Icon(
+                        Icons.person_4,
+                        color: grey,
+                        size: 150,
+                        shadows: [
+                          Shadow(
+                            color: Colors.white,
+                            offset: Offset.zero,
+                            blurRadius: 20,
+                          )
+                        ],
                       ),
                     ),
-                    icon: const Icon(
-                      Icons.add,
+                    Text(
+                      name!,
+                      style: const TextStyle(
+                        color: Colors.black,
+                        fontStyle: FontStyle.italic,
+                        fontWeight: FontWeight.w400,
+                        fontSize: 50,
+                      ),
                     ),
-                  ),
-                ),
-              );
-            }
-
-            return SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Column(
-                      children: [
-                        Container(
-                          decoration: BoxDecoration(
-                            color: grey,
-                            borderRadius: BorderRadius.circular(1000),
-                          ),
-                          width: 150,
-                          height: 150,
-                          child: const Icon(
-                            Icons.person_4,
-                            color: grey,
-                            size: 150,
-                            shadows: [
-                              Shadow(
-                                color: Colors.white,
-                                offset: Offset.zero,
-                                blurRadius: 20,
-                              )
-                            ],
-                          ),
-                        ),
-                        Text(
-                          name = '백효영',
-                          style: const TextStyle(
-                            color: Colors.black,
-                            fontStyle: FontStyle.italic,
-                            fontWeight: FontWeight.w400,
-                            fontSize: 50,
-                          ),
-                        )
-                      ],
-                    ),
-                    ScheduleTable(
-                      classTable: snapshot.data!,
-                      sizeOfTuple: sizeOfTuple,
-                    ),
+                    Text(
+                      id.toString(),
+                      style: const TextStyle(
+                        color: Colors.black,
+                        fontStyle: FontStyle.italic,
+                        fontWeight: FontWeight.w300,
+                        fontSize: 25,
+                      ),
+                    )
                   ],
                 ),
-              ),
-            );
-          },
+                FutureBuilder<List<ClassModel>?>(
+                    future: getTableInfo(),
+                    builder: (context, snapshot) {
+                      // if (!snapshot.hasData) {
+                      //   return const Center(
+                      //     child: SizedBox(
+                      //       width: 200,
+                      //       height: 200,
+                      //       child: BottomCircleProgressBar(),
+                      //     ),
+                      //   );
+                      // }
+                      if (!snapshot.hasData) {
+                        return Center(
+                          child: SizedBox(
+                            width: 200,
+                            height: 200,
+                            child: IconButton(
+                              onPressed: () => showModalBottomSheet(
+                                isScrollControlled: true,
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return FloatingSheet(
+                                    search: Search(
+                                      controller: tableController,
+                                      onItemTap: onTableItemTap,
+                                      onBarTap: onTableBarTap,
+                                      onChanged: onTableChanged,
+                                    ),
+                                    title: "시간표를 등록하세요",
+                                    onDonePressed: onDonePressed,
+                                  );
+                                },
+                                shape: const RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.vertical(
+                                    top: Radius.circular(30),
+                                  ),
+                                ),
+                              ),
+                              icon: Icon(
+                                Icons.add,
+                                size: MediaQuery.of(context).size.width * 1 / 3,
+                              ),
+                            ),
+                          ),
+                        );
+                      }
+                      return ScheduleTable(
+                        classTable: snapshot.data!,
+                        sizeOfTuple: sizeOfTuple,
+                      );
+                    }),
+              ],
+            ),
+          ),
         ),
       ),
     );

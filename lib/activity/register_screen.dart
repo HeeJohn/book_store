@@ -1,9 +1,9 @@
 import 'dart:convert';
 
-import 'package:db/activity/common/bottm_sheet.dart';
+import 'package:db/activity/common/bottom_sheet.dart';
 import 'package:db/activity/common/registered_book.dart';
 import 'package:db/common/api/address.dart';
-import 'package:db/common/api/models/registered_book_model.dart';
+import 'package:db/common/api/models/book_model.dart';
 import 'package:db/common/api/request.dart';
 import 'package:db/common/local_storage/const.dart';
 import 'package:db/home/common/layout.dart';
@@ -21,7 +21,7 @@ class RegisterScreen extends StatefulWidget {
 class _RegisterScreenState extends State<RegisterScreen> {
   late String? sessionID;
   void onBookTap(bookCode) {}
-
+  void onDonePressed() {}
   Future<List<RegisterdBook>?> getBookInfo() async {
     ApiService registeredBook = ApiService();
     sessionID = await storage.read(key: sessionIDLS);
@@ -31,17 +31,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
       if ('success' == await registeredBook.reponseMessageCheck(response)) {
         final List<Map<String, String>> books =
             jsonDecode(response!.data['data']);
-        List<RegisteredBookModel> registeredBooks =
-            books.map((e) => RegisteredBookModel.fromJson(e)).toList();
+        List<BookModel> registeredBooks =
+            books.map((e) => BookModel.fromJson(e)).toList();
 
         return registeredBooks
             .map(
               (e) => RegisterdBook(
-                name: e.rbName,
-                bookImage: e.rbImage,
-                date: e.rbDate,
+                name: e.bookName,
+                bookImage: e.bookImage,
+                date: e.bookRGDate,
                 onTap: () => onBookTap,
-                price: e.rbPrice,
+                price: e.bookPrice,
               ),
             )
             .toList();
@@ -55,12 +55,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return MainLayout(
       floatingActionButton: FloatingActionButton(
         onPressed: () => showModalBottomSheet(
+          backgroundColor: Colors.white,
+          barrierColor: Colors.white,
           isScrollControlled: true,
           context: context,
           builder: (BuildContext context) {
             return FloatingSheet(
               title: "책을 등록하세요",
-              onDonePressed: () {},
+              onDonePressed: onDonePressed,
             );
           },
           shape: const RoundedRectangleBorder(
@@ -75,30 +77,29 @@ class _RegisterScreenState extends State<RegisterScreen> {
           "등록된 책 리스트",
           style: TextStyle(fontSize: 30, fontWeight: FontWeight.w800),
         ),
-        Expanded(
-          child: FutureBuilder<List<RegisterdBook>?>(
-            future: getBookInfo(),
-            builder: (context, snapshot) {
-              if (!snapshot.hasData) {
-                return const BottomCircleProgressBar();
-              }
+        FutureBuilder<List<RegisterdBook>?>(
+          future: getBookInfo(),
+          builder: (context, snapshot) {
+            if (!snapshot.hasData) {
+              return const BottomCircleProgressBar();
+            }
 
-              if (snapshot.data == null) {
-                return const Center(
-                  child: TopImage(),
-                );
-              }
-
-              return ListView.builder(
-                physics: const NeverScrollableScrollPhysics(),
-                shrinkWrap: true,
-                itemCount: snapshot.data!.length,
-                itemBuilder: (BuildContext context, int index) {
-                  return snapshot.data![index];
-                },
+            if (snapshot.data == null) {
+              return SizedBox(
+                width: MediaQuery.of(context).size.width * 1 / 5,
+                child: const TopImage(),
               );
-            },
-          ),
+            }
+
+            return ListView.builder(
+              physics: const NeverScrollableScrollPhysics(),
+              shrinkWrap: true,
+              itemCount: snapshot.data!.length,
+              itemBuilder: (BuildContext context, int index) {
+                return snapshot.data![index];
+              },
+            );
+          },
         ),
       ],
     );
