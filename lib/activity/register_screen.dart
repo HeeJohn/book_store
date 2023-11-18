@@ -44,7 +44,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   void onChanged(DateTime val) {
     setState(() {
-      bookPublishedDate = val.toString();
+      bookPublishedDate = '${val.year}-${val.month}-${val.day}';
     });
   }
 
@@ -59,9 +59,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
             color: Colors.grey[100],
             height: MediaQuery.of(context).size.height / 3,
             child: CupertinoDatePicker(
-              minimumDate: DateTime(1950, 1, 1),
-              maximumDate: DateTime(2009, 12, 31),
-              initialDateTime: DateTime(2000, 1, 1),
+              minimumDate: DateTime(1900, 1, 1),
+              maximumDate: today,
+              initialDateTime: today,
               mode: CupertinoDatePickerMode.date,
               onDateTimeChanged: (DateTime date) => onChanged(date),
             ),
@@ -124,6 +124,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               comController: bookPublisherCTR,
               nameController: bookNameCTR,
               priceController: bookPriceCTR,
+              publishedDate: bookPublishedDate,
               onDatePressed: pickDate,
               title: "책을 등록하세요",
               onDonePressed: onDonePressed,

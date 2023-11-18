@@ -3,19 +3,21 @@ import 'package:flutter/material.dart';
 
 class CustomTextField extends StatelessWidget {
   final String label;
-  final TextEditingController controller;
+  final TextEditingController? controller;
   final String hintText;
   final TextInputType textinputType;
   final int? maxLines;
   final Function(String)? onChanged;
+  final bool? enabled;
   const CustomTextField({
     super.key,
     required this.label,
     required this.hintText,
-    required this.controller,
+    this.controller,
     required this.textinputType,
     this.maxLines,
     this.onChanged,
+    this.enabled,
   });
 
   @override
@@ -36,6 +38,7 @@ class CustomTextField extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 5),
           child: TextField(
+            enabled: enabled,
             onChanged: onChanged,
             controller: controller,
             maxLines: maxLines,
