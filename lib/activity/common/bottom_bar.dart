@@ -1,4 +1,5 @@
 import 'package:db/activity/common/bottom_nav.dart';
+import 'package:db/activity/meet_up_list_screen.dart';
 import 'package:db/activity/meet_up_screen.dart';
 import 'package:db/activity/notification_screen.dart';
 import 'package:db/activity/register_screen.dart';
@@ -24,7 +25,7 @@ class _BottomBarState extends State<BottomBar> {
   List<Widget> pages = const [
     SearchScreen(),
     RegisterScreen(),
-    MeetUpScreen(),
+    MeetUpList(),
     NotificationScreen(),
   ];
 

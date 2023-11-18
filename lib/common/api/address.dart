@@ -9,6 +9,7 @@ const registerScreen = '/register';
 const bottomBar = '/bottomBar';
 const meetUpScreen = '/meetUp';
 const bookScreen = '/book';
+const meetUpListScreen = '/meetUpList';
 
 /*---------------- url --------------*/
 const registeredBookURL = '/registeredBook';
