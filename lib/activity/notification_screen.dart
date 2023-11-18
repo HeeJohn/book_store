@@ -30,13 +30,16 @@ class NotificationScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return MainLayout(
       children: [
-        const Text('구매요청 리스트'),
+        const Text(
+          '구매요청 리스트',
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+        ),
         Expanded(
           child: FutureBuilder<List<Notify>?>(
             future: getNotiList(),
             builder: (context, snapshot) {
               if (!snapshot.hasData) {
-                return const BottomCircleProgressBar();
+                return const Expanded(child: BottomCircleProgressBar());
               }
 
               if (snapshot.data == null) {

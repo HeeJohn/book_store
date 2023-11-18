@@ -11,7 +11,6 @@ import 'package:db/home/common/layout.dart';
 import 'package:db/home/common/top_image.dart';
 import 'package:db/home/login.dart';
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -57,7 +56,6 @@ class _SplashScreenState extends State<SplashScreen> {
     // if (phoneNum != null && password != null) {
     //   return await login('$phoneNum:$password');
     // }
-    nextPage(loginScreen);
 
     return 'success';
   }
@@ -97,6 +95,7 @@ class BottomCircleProgressBar extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         SizedBox(
+          width: MediaQuery.of(context).size.width * 1 / 2,
           child: Image.asset(
             'asset/img/progress.gif',
             fit: BoxFit.contain,

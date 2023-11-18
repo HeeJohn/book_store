@@ -1,5 +1,4 @@
-import 'package:db/activity/common/bottom_sheet.dart';
-import 'package:db/activity/common/search_bar.dart';
+import 'package:db/activity/common/bottom_sheet_with_search.dart';
 import 'package:db/common/api/address.dart';
 import 'package:db/common/api/models/class_model.dart';
 import 'package:db/common/api/request.dart';
@@ -23,49 +22,11 @@ class _SearchScreenState extends State<SearchScreen> {
   late final int userMode;
   String? sessionID;
   late final List<int>? tableInfo;
-  final SearchController controller = SearchController();
-  final SearchController tableController = SearchController();
+
   @override
   void initState() {
     getStudentInfo();
     super.initState();
-  }
-
-  void onBarTap() {
-    setState(() {
-      controller.openView();
-    });
-  }
-
-  void onChanged(_) {
-    setState(() {
-      controller.openView();
-    });
-  }
-
-  void onItemTap() {
-    setState(() {
-      controller.openView();
-    });
-  }
-
-  void onTableItemTap() {
-    setState(() {
-      tableController.openView();
-    });
-  }
-
-  void onTableBarTap() {
-    setState(() {
-      tableController.openView();
-    });
-  }
-
-  void onTableChanged(_) {
-    setState(() {
-      tableController.openView();
-    });
-    return;
   }
 
   Future<List<ClassModel>?> getTableInfo() async {
@@ -116,11 +77,58 @@ class _SearchScreenState extends State<SearchScreen> {
           elevation: 0,
           actions: [
             Expanded(
-              child: Search(
-                controller: controller,
-                onChanged: onChanged,
-                onBarTap: onBarTap,
-                onItemTap: onItemTap,
+              child: SearchAnchor(
+                builder: (BuildContext context, SearchController controller) {
+                  return SearchBar(
+                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                      RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10.0),
+                        side: const BorderSide(
+                          color: Colors.grey,
+                          width: 1,
+                        ),
+                      ),
+                    ),
+                    elevation: MaterialStateProperty.all<double>(0.0),
+                    backgroundColor: MaterialStateProperty.all<Color>(
+                      const Color.fromARGB(255, 255, 255, 255),
+                    ),
+                    controller: controller,
+                    padding: const MaterialStatePropertyAll<EdgeInsets>(
+                      EdgeInsets.only(right: 16),
+                    ),
+                    onTap: () {
+                      controller.openView();
+                    },
+                    onChanged: (value) {
+                      controller.openView();
+                    },
+                    leading: Container(
+                      color: const Color.fromARGB(255, 223, 223, 223),
+                      width: 60,
+                      height: 60,
+                      child: const Icon(
+                        Icons.search,
+                        color: grey,
+                      ),
+                    ),
+                  );
+                },
+                suggestionsBuilder:
+                    (BuildContext context, SearchController controller) {
+                  return List<ListTile>.generate(
+                    5,
+                    (int index) {
+                      final String item = 'item $index';
+                      return ListTile(
+                        title: Text(item),
+                        onTap: () {
+                          controller.closeView(item);
+                        },
+                      );
+                    },
+                  );
+                },
               ),
             ),
           ],
@@ -201,13 +209,7 @@ class _SearchScreenState extends State<SearchScreen> {
                                 isScrollControlled: true,
                                 context: context,
                                 builder: (BuildContext context) {
-                                  return FloatingSheet(
-                                    search: Search(
-                                      controller: tableController,
-                                      onItemTap: onTableItemTap,
-                                      onBarTap: onTableBarTap,
-                                      onChanged: onTableChanged,
-                                    ),
+                                  return FloatingSheetWithSearchBar(
                                     title: "시간표를 등록하세요",
                                     onDonePressed: onDonePressed,
                                   );
@@ -226,10 +228,11 @@ class _SearchScreenState extends State<SearchScreen> {
                           ),
                         );
                       }
-                      return ScheduleTable(
-                        classTable: snapshot.data!,
-                        sizeOfTuple: sizeOfTuple,
-                      );
+                      return const Text('hi');
+                      // return ScheduleTable(
+                      //   classTable: snapshot.data!,
+                      //   sizeOfTuple: sizeOfTuple,
+                      // );
                     }),
               ],
             ),

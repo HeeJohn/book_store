@@ -16,8 +16,8 @@ class CustomTextFormField extends StatelessWidget {
   // Constructor for a login-style form field
   const CustomTextFormField({
     super.key,
-    required this.hasError,
     this.onChanged,
+    required this.hasError,
     this.autofocus = false,
     this.obscureText = false,
     this.hintText,

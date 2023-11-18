@@ -1,5 +1,6 @@
 import 'package:db/activity/common/bottom_nav.dart';
 import 'package:db/activity/meet_up_screen.dart';
+import 'package:db/activity/notification_screen.dart';
 import 'package:db/activity/register_screen.dart';
 import 'package:db/activity/search_screen.dart';
 import 'package:flutter/material.dart';
@@ -24,6 +25,7 @@ class _BottomBarState extends State<BottomBar> {
     SearchScreen(),
     RegisterScreen(),
     MeetUpScreen(),
+    NotificationScreen(),
   ];
 
   @override

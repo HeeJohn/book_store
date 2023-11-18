@@ -33,7 +33,13 @@ class BottomDesign extends StatelessWidget {
             icon: Icons.map_outlined,
             text: "meet up",
             gap: 8,
-          )
+          ),
+          GButton(
+            padding: EdgeInsets.symmetric(vertical: 18, horizontal: 18),
+            icon: Icons.notifications_active,
+            text: "notification",
+            gap: 8,
+          ),
         ],
       ),
     );
