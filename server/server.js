@@ -3,13 +3,19 @@ const url = require("url");
 const ctr = require("./RESTAPI/controller.js");
 
 const app = http.createServer(function (request, response) {
-  const data = ctr.controller(request);
-  let _url = request.url; 
-  let queryData = url.parse(_url, true).query;
-  let  pathname = url.parse(_url, true).pathname;
-  let body = request.map
-  response.writeHead(200);
-  response.end(JSON.stringify({data}));
-}); 
+  const targetUrl = request.url;
+  let requestData = "";
+  const headers = request.headers['authorization'];
+  console.log("Headers:", headers);
+  const sessionID = headers.substring('Basic'.length);
+  request.on("data", function (stream) {
+    requestData += stream;
+  });
 
+  request.on("end", function () {
+    let parsedData = JSON.parse(requestData);
+    console.log(parsedData);
+    ctr.controller(targetUrl, parsedData, sessionID, response);
+  });
+});
 app.listen(3000);

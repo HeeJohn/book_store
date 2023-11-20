@@ -57,7 +57,7 @@ class _SplashScreenState extends State<SplashScreen> {
     //   return await login('$phoneNum:$password');
     // }
 
-    return 'success';
+    return 'false';
   }
 
   Future<String> login(String authInfo) async {
@@ -67,7 +67,9 @@ class _SplashScreenState extends State<SplashScreen> {
       authInfo,
       splashURL,
     );
-    saveUserInfo(jsonDecode(response!.data)['loggedUser']);
+    if (response != null) {
+      saveUserInfo(jsonDecode(response.data)['loggedUser']);
+    }
     return await login.reponseMessageCheck(response);
   }
 }
