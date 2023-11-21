@@ -12,13 +12,15 @@ class ApiService {
   Future<Response?> postRequest(
       String sessionID, String toUrl, dynamic data) async {
     try {
-      final Response<dynamic> response = await dio.post(ip + toUrl,
-          options: Options(
-            headers: {
-              "authorization": 'Basic $sessionID',
-            },
-          ),
-          data: data);
+      final Response<dynamic> response = await dio.post(
+        ip + toUrl,
+        options: Options(
+          headers: {
+            "authorization": 'Basic $sessionID',
+          },
+        ),
+        data: data,
+      );
 
       return response;
     } on DioException catch (e) {
@@ -27,15 +29,17 @@ class ApiService {
     }
   }
 
-  Future<Response?> getRequest(String sessionID, String toUrl) async {
+  Future<Response?> getRequest(
+      String sessionID, String toUrl, dynamic data) async {
     try {
-      final Response<dynamic> response = await dio.post(
+      final Response<dynamic> response = await dio.get(
         ip + toUrl,
         options: Options(
           headers: {
             "authorization": 'Basic $sessionID',
           },
         ),
+        data: data,
       );
 
       return response;
@@ -53,6 +57,7 @@ class ApiService {
     }
     if (response.statusCode == 200) {
       dynamic res = jsonDecode(response.data);
+      print(res);
       String data = res['message'];
       switch (data) {
         case 'success':

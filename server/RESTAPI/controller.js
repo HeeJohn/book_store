@@ -1,52 +1,33 @@
-const qs = require("querystring");
-const db = require('../mysql.js');
-const addr = require('./cosnt/address.js');
-const attributes = require('./cosnt/attributes.js');
-
+const db = require("../mysql.js");
+const addr = require("./cosnt/address.js");
+const signUp = require("./request/signUp.js");
+const logIn = require("./request/logIn.js");
 function controller(targetUrl, body, sessionID, response) {
-    let targetTable = '';
-    switch (targetUrl) {
-        case addr.gpsURL:
-            db.query(`SELECT * FROM ${targetTable}`, function (error, result) {
-                if (error) {
-                    throw error;
-                }
-                response.writeHead(200);
-                response.end(JSON.stringify(result));
-            });
-            break;
-        case addr.signUpURL:
-            targetTable = 'user';
-            // TODO: 적절한 데이터 삽입 방법을 사용하여 쿼리를 작성
-            db.query(`INSERT INTO ${targetTable} (phone, name, student_id, password) 
-                      VALUES (?, ?, ?, ?)`, [body.phone, body.name, body.id, body.password], function (error, result) {
-                if (error) {
-                    throw error;
-                }else{
-                response.writeHead(200);
-                result.message ="signUp done";
-                response.end(JSON.stringify(result));
-                }
-          
-            });
-            break;
-        case addr.logInURL:
-            // TODO: 로그인 로직 구현
-            break;
-        case addr.splashURL:
-            targetTable = 'student';
-            db.query(`SELECT student_id FROM ${targetTable} WHERE student_id = ?`, [body.student_id], function (error, result) {
-                if (error) {
-                    throw error;
-                }
-                response.writeHead(200);
-                response.end(JSON.stringify(result));
-            });
-            break;
-        default:
-            // 처리할 URL이 없는 경우
-            response.writeHead(404);
-            response.end(JSON.stringify({ message: 'Not Found' }));
+    
+  /* mapping each url to appropriate function */
+  const sendTo = new Map([
+    [addr.signUpURL, signUp.request],
+    [addr.logInURL, logIn.request],
+    [addr.splashURL, signUp.request],
+    [addr.gpsURL, signUp.request],
+    [addr.tableSearchURL, signUp.request],
+    [addr.tableAddURL, signUp.request],
+    [addr.myTableURL, signUp.request],
+  ]);
+
+  // check sessionID
+  let sql = `SELECT STUDENT_ID 
+            FROM SESSION
+            WHERE id = ?`;
+  let param = [sessionID];
+  db.query(sql, param, function (error, id) {
+    if (error) {
+      sendTo.get(targetUrl)(body, response);
+    } else {
+      console.log(id);
+      sendTo.get(targetUrl)(id, body, response);
     }
+  });
 }
+
 module.exports = { controller };

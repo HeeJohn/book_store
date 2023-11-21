@@ -32,7 +32,7 @@ class _SearchScreenState extends State<SearchScreen> {
   Future<List<ClassModel>?> getTableInfo() async {
     ApiService classInfo = ApiService();
     if (sessionID != null) {
-      final response = await classInfo.getRequest(sessionID!, tableURL);
+      final response = await classInfo.getRequest(sessionID!, tableURL, null);
       if ('success' == await classInfo.reponseMessageCheck(response)) {
         return response!.data['data'];
       }

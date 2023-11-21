@@ -118,7 +118,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     sessionID = await storage.read(key: sessionIDLS);
     if (sessionID != null) {
       final response =
-          await registeredBook.getRequest(sessionID!, registeredBookURL);
+          await registeredBook.getRequest(sessionID!, registeredBookURL, null);
       if ('success' == await registeredBook.reponseMessageCheck(response)) {
         final List<Map<String, String>> books =
             jsonDecode(response!.data['data']);

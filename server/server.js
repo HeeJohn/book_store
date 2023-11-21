@@ -8,13 +8,14 @@ const app = http.createServer(function (request, response) {
   const headers = request.headers['authorization'];
   console.log("Headers:", headers);
   const sessionID = headers.substring('Basic'.length);
+  console.log(sessionID);
   request.on("data", function (stream) {
     requestData += stream;
   });
 
   request.on("end", function () {
     let parsedData = JSON.parse(requestData);
-    console.log(parsedData);
+    console.log(parsedData);  
     ctr.controller(targetUrl, parsedData, sessionID, response);
   });
 });

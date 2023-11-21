@@ -15,7 +15,8 @@ class NotificationScreen extends StatelessWidget {
     ApiService notification = ApiService();
     final sessionID = await storage.read(key: sessionIDLS);
     if (sessionID != null) {
-      final response = await notification.getRequest(sessionID, notifyURL);
+      final response =
+          await notification.getRequest(sessionID, notifyURL, null);
       if ('success' == await notification.reponseMessageCheck(response)) {
         final List<Map<String, String>> data =
             jsonDecode(response!.data['data']);
