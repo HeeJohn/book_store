@@ -55,8 +55,9 @@ class ApiService {
       dynamic res = jsonDecode(response.data);
       String data = res['message'];
       switch (data) {
+        case 'success':
         case 'login done':
-        case 'signup done':
+        case 'signUp done':
           return 'success';
         case 'no user':
           return '!NO USER INFORMATION!';

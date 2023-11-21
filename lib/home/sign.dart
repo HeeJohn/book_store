@@ -19,12 +19,18 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   bool hasError = false;
   int index = 0;
-  late final Map<String, String> inputList;
+  late Map<String, String> inputList;
   late final Map<String, List<dynamic>> signUpList;
   final textController = TextEditingController();
 
   @override
   void initState() {
+    inputList = {
+      'phone': '',
+      'name': '',
+      'id': '',
+      'password': '',
+    };
     super.initState();
     /* 0: 전화번호, 1: 이름, 2: 학번, 3: 비밀번호 */
     signUpList = {
@@ -117,6 +123,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       inputList.update(signUpList['type']![index],
           ((value) => textController.text.toString()));
       if (index == 3) {
+        print(inputList);
         await storage.write(
           key: passwordLS,
           value: textController.value.text.toString(),
