@@ -1,15 +1,29 @@
 import 'package:db/activity/common/round_small_btn.dart';
+import 'package:db/activity/search_screen.dart';
+import 'package:db/common/api/models/class_model.dart';
 import 'package:db/common/const/color.dart';
 import 'package:flutter/material.dart';
 
 class FloatingSheetWithSearchBar extends StatelessWidget {
   final String title;
   final VoidCallback onDonePressed;
+  final int tupleCount;
+  final VoidCallback onTap;
+  final ValueChanged onChanged;
+  final ValueChanged onSelected;
+  final int selectedItemCount;
+  final Map<int, ClassModel> classModels;
 
   const FloatingSheetWithSearchBar({
     super.key,
     required this.title,
     required this.onDonePressed,
+    required this.tupleCount,
+    required this.onChanged,
+    required this.onSelected,
+    required this.onTap,
+    required this.selectedItemCount,
+    required this.classModels,
   });
 
   @override
@@ -81,12 +95,8 @@ class FloatingSheetWithSearchBar extends StatelessWidget {
                           padding: const MaterialStatePropertyAll<EdgeInsets>(
                             EdgeInsets.only(right: 16),
                           ),
-                          onTap: () {
-                            controller.openView();
-                          },
-                          onChanged: (value) {
-                            controller.openView();
-                          },
+                          onTap: onTap,
+                          onChanged: onChanged,
                           leading: Container(
                             color: const Color.fromARGB(255, 223, 223, 223),
                             width: 60,
@@ -103,17 +113,25 @@ class FloatingSheetWithSearchBar extends StatelessWidget {
                         return List<ListTile>.generate(
                           5,
                           (int index) {
-                            final String item = 'item $index';
                             return ListTile(
-                              title: Text(item),
+                              title: Text(classModels[index]!.className),
                               onTap: () {
-                                controller.closeView(item);
+                                controller.closeView(
+                                    classModels[index]!.classCode.toString());
+                                onSelected(controller.value);
                               },
                             );
                           },
                         );
                       },
-                    )
+                    ),
+                    const SizedBox(
+                      height: 20,
+                    ),
+                    ScheduleTable(
+                      sizeOfTuple: selectedItemCount,
+                      classTable: const [],
+                    ),
                   ],
                 ),
               ),

@@ -21,8 +21,11 @@ class _SearchScreenState extends State<SearchScreen> {
   final int sizeOfTuple = 5; // temp
   late final int userMode;
   String? sessionID;
-  late final List<int>? tableInfo;
-
+  late List<int> tableInfo;
+  late int tupleCountForSearch;
+  late int selectedItemCount;
+  late Map<int, ClassModel> selectClassModels;
+  late List<ClassModel> classTable;
   @override
   void initState() {
     getStudentInfo();
@@ -59,11 +62,39 @@ class _SearchScreenState extends State<SearchScreen> {
   void onDonePressed() async {
     ApiService addTable = ApiService();
     if (sessionID != null) {
-      final response = await addTable.postRequest(
-          sessionID!, addTableURL, tableInfo ??= null);
+      final response =
+          await addTable.postRequest(sessionID!, addTableURL, tableInfo);
       if ('success ' == await addTable.reponseMessageCheck(response)) {
-        print("sucessfully send");
+        selectClassModels.clear();
       }
+    }
+  }
+
+  void onSearchChanged(val) async {
+    selectClassModels.clear();
+    ApiService classInfo = ApiService();
+    if (sessionID != null) {
+      final response =
+          await classInfo.getRequest(sessionID!, tableSearchURL, null);
+      if ('success' == await classInfo.reponseMessageCheck(response)) {
+        if (response!.data['data'] != null) {
+          int size = response.data['data'].length;
+          for (int i = 0; i < size; i++) {
+            selectClassModels.update(
+              i,
+              (value) => ClassModel.fromJson(response.data['data']),
+            );
+          }
+        }
+      }
+    }
+  }
+
+  void onSearchTapBarTap() {}
+
+  void onSearchSelected(val) {
+    if (val != null) {
+      tableInfo.add(val as int);
     }
   }
 
@@ -100,7 +131,7 @@ class _SearchScreenState extends State<SearchScreen> {
                     onTap: () {
                       controller.openView();
                     },
-                    onChanged: (value) {
+                    onChanged: (val) {
                       controller.openView();
                     },
                     leading: Container(
@@ -210,8 +241,14 @@ class _SearchScreenState extends State<SearchScreen> {
                                 context: context,
                                 builder: (BuildContext context) {
                                   return FloatingSheetWithSearchBar(
+                                    classModels: selectClassModels,
+                                    selectedItemCount: selectedItemCount,
                                     title: "시간표를 등록하세요",
                                     onDonePressed: onDonePressed,
+                                    tupleCount: tupleCountForSearch,
+                                    onChanged: onSearchChanged,
+                                    onSelected: onSearchSelected,
+                                    onTap: onSearchTapBarTap,
                                   );
                                 },
                                 shape: const RoundedRectangleBorder(
@@ -298,16 +335,6 @@ class ScheduleTable extends StatelessWidget {
                 child: Text(
                   classTable[index].classProf,
                   overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              Container(
-                width: 100,
-                height: 70,
-                color: Colors.white,
-                alignment: Alignment.center,
-                padding: const EdgeInsets.all(8),
-                child: Text(
-                  '${classTable[index].classDay}\n${classTable[index].classTime}',
                 ),
               ),
               Container(
