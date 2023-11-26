@@ -2,6 +2,7 @@ const db = require("../mysql.js");
 const addr = require("./cosnt/address.js");
 const signUp = require("./request/signUp.js");
 const logIn = require("./request/logIn.js");
+const tableSearch = require("./request/tableSearch.js");
 function controller(targetUrl, body, sessionID, response) {
     
   /* mapping each url to appropriate function */
@@ -10,7 +11,7 @@ function controller(targetUrl, body, sessionID, response) {
     [addr.logInURL, logIn.request],
     [addr.splashURL, signUp.request],
     [addr.gpsURL, signUp.request],
-    [addr.tableSearchURL, signUp.request],
+    [addr.tableSearchURL, tableSearch.request],
     [addr.tableAddURL, signUp.request],
     [addr.myTableURL, signUp.request],
   ]);

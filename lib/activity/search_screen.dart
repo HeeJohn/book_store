@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:db/activity/common/bottom_sheet_with_search.dart';
 import 'package:db/common/api/address.dart';
 import 'package:db/common/api/models/class_model.dart';
@@ -19,13 +21,12 @@ class _SearchScreenState extends State<SearchScreen> {
   String? name;
   int? id;
   final int sizeOfTuple = 5; // temp
-  late final int userMode;
+
   String? sessionID;
-  late List<int> tableInfo;
-  late int tupleCountForSearch;
-  late int selectedItemCount;
-  late Map<int, ClassModel> selectClassModels;
-  late List<ClassModel> classTable;
+  List<int> tableInfo = [];
+  Map<int, ClassModel> selectClassModels = {};
+  Map<int, ClassModel> recomClassModels = {};
+  List<ClassModel> classTable = [];
   @override
   void initState() {
     getStudentInfo();
@@ -34,10 +35,10 @@ class _SearchScreenState extends State<SearchScreen> {
 
   Future<List<ClassModel>?> getTableInfo() async {
     ApiService classInfo = ApiService();
-    if (sessionID != null) {
+    if (sessionID == 0) {
       final response = await classInfo.getRequest(sessionID!, tableURL, null);
       if ('success' == await classInfo.reponseMessageCheck(response)) {
-        return response!.data['data'];
+        return jsonDecode(response!.data['data']);
       }
     }
 
@@ -48,9 +49,8 @@ class _SearchScreenState extends State<SearchScreen> {
     name = '백효영';
     id = 201901366;
     sessionID = await storage.read(key: sessionIDLS);
-    if (sessionID == null) {
+    if (sessionID != null) {
       final box = Boxes.getUserData();
-
       UserData? student = box.get(sessionID);
       if (student != null) {
         name = student.studentName;
@@ -65,36 +65,45 @@ class _SearchScreenState extends State<SearchScreen> {
       final response =
           await addTable.postRequest(sessionID!, addTableURL, tableInfo);
       if ('success ' == await addTable.reponseMessageCheck(response)) {
-        selectClassModels.clear();
+        for (var element in selectClassModels.values) {
+          classTable.add(element);
+        }
       }
+      setState(() {});
     }
   }
 
-  void onSearchChanged(val) async {
-    selectClassModels.clear();
+  void onSearchChanged(String val) async {
+    print(val);
+    print("======================================================");
+    recomClassModels.clear();
     ApiService classInfo = ApiService();
     if (sessionID != null) {
-      final response =
-          await classInfo.getRequest(sessionID!, tableSearchURL, null);
+      dynamic response =
+          await classInfo.getRequest(sessionID!, tableSearchURL, {'text': val});
       if ('success' == await classInfo.reponseMessageCheck(response)) {
-        if (response!.data['data'] != null) {
-          int size = response.data['data'].length;
+        dynamic received = await jsonDecode(response!.data);
+        if (await received['data'] != null) {
+          int size = await received['data'].length;
+          print(size);
+          if (size != 0) {
+            print(received['data'][0]);
+          }
           for (int i = 0; i < size; i++) {
-            selectClassModels.update(
-              i,
-              (value) => ClassModel.fromJson(response.data['data']),
-            );
+            recomClassModels.putIfAbsent(
+                i, () => ClassModel.fromJson(received['data'][i]));
           }
         }
       }
     }
   }
 
-  void onSearchTapBarTap() {}
-
   void onSearchSelected(val) {
     if (val != null) {
-      tableInfo.add(val as int);
+      setState(() {
+        tableInfo.add(val as int);
+        classTable.add(recomClassModels.values.elementAt(val.toInt()));
+      });
     }
   }
 
@@ -109,6 +118,7 @@ class _SearchScreenState extends State<SearchScreen> {
           actions: [
             Expanded(
               child: SearchAnchor(
+                isFullScreen: false,
                 builder: (BuildContext context, SearchController controller) {
                   return SearchBar(
                     shape: MaterialStateProperty.all<RoundedRectangleBorder>(
@@ -128,11 +138,10 @@ class _SearchScreenState extends State<SearchScreen> {
                     padding: const MaterialStatePropertyAll<EdgeInsets>(
                       EdgeInsets.only(right: 16),
                     ),
-                    onTap: () {
-                      controller.openView();
-                    },
+                    onTap: () {},
                     onChanged: (val) {
-                      controller.openView();
+                      print("============================");
+                      print(val);
                     },
                     leading: Container(
                       color: const Color.fromARGB(255, 223, 223, 223),
@@ -219,58 +228,56 @@ class _SearchScreenState extends State<SearchScreen> {
                   ],
                 ),
                 FutureBuilder<List<ClassModel>?>(
-                    future: getTableInfo(),
-                    builder: (context, snapshot) {
-                      // if (!snapshot.hasData) {
-                      //   return const Center(
-                      //     child: SizedBox(
-                      //       width: 200,
-                      //       height: 200,
-                      //       child: BottomCircleProgressBar(),
-                      //     ),
-                      //   );
-                      // }
-                      if (!snapshot.hasData) {
-                        return Center(
-                          child: SizedBox(
-                            width: 200,
-                            height: 200,
-                            child: IconButton(
-                              onPressed: () => showModalBottomSheet(
-                                isScrollControlled: true,
-                                context: context,
-                                builder: (BuildContext context) {
-                                  return FloatingSheetWithSearchBar(
-                                    classModels: selectClassModels,
-                                    selectedItemCount: selectedItemCount,
-                                    title: "시간표를 등록하세요",
-                                    onDonePressed: onDonePressed,
-                                    tupleCount: tupleCountForSearch,
-                                    onChanged: onSearchChanged,
-                                    onSelected: onSearchSelected,
-                                    onTap: onSearchTapBarTap,
-                                  );
-                                },
-                                shape: const RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.vertical(
-                                    top: Radius.circular(30),
-                                  ),
+                  future: getTableInfo(),
+                  builder: (context, snapshot) {
+                    // if (!snapshot.hasData) {
+                    //   return const Center(
+                    //     child: SizedBox(
+                    //       width: 200,
+                    //       height: 200,
+                    //       child: BottomCircleProgressBar(),
+                    //     ),
+                    //   );
+                    // }
+                    if (!snapshot.hasData) {
+                      return Center(
+                        child: SizedBox(
+                          width: 200,
+                          height: 200,
+                          child: IconButton(
+                            onPressed: () => showModalBottomSheet(
+                              isScrollControlled: true,
+                              context: context,
+                              builder: (BuildContext context) {
+                                return FloatingSheetWithSearchBar(
+                                  classModels: classTable,
+                                  recomClassModels: recomClassModels,
+                                  title: "시간표를 등록하세요",
+                                  onDonePressed: onDonePressed,
+                                  onChanged: onSearchChanged,
+                                  onSelected: onSearchSelected,
+                                );
+                              },
+                              shape: const RoundedRectangleBorder(
+                                borderRadius: BorderRadius.vertical(
+                                  top: Radius.circular(30),
                                 ),
                               ),
-                              icon: Icon(
-                                Icons.add,
-                                size: MediaQuery.of(context).size.width * 1 / 3,
-                              ),
+                            ),
+                            icon: Icon(
+                              Icons.add,
+                              size: MediaQuery.of(context).size.width * 1 / 3,
                             ),
                           ),
-                        );
-                      }
-                      return const Text('hi');
-                      // return ScheduleTable(
-                      //   classTable: snapshot.data!,
-                      //   sizeOfTuple: sizeOfTuple,
-                      // );
-                    }),
+                        ),
+                      );
+                    }
+                    return ScheduleTable(
+                      classTable: snapshot.data!,
+                      sizeOfTuple: sizeOfTuple,
+                    );
+                  },
+                ),
               ],
             ),
           ),
@@ -335,16 +342,6 @@ class ScheduleTable extends StatelessWidget {
                 child: Text(
                   classTable[index].classProf,
                   overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              Container(
-                width: 100,
-                height: 70,
-                color: Colors.white,
-                alignment: Alignment.center,
-                padding: const EdgeInsets.all(8),
-                child: Text(
-                  classTable[index].classLoc,
                 ),
               ),
               Container(

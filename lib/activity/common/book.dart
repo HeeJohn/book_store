@@ -5,7 +5,6 @@ import 'package:db/common/api/address.dart';
 import 'package:db/common/api/request.dart';
 import 'package:db/common/local_storage/const.dart';
 import 'package:db/home/common/layout.dart';
-import 'package:db/home/sign.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';

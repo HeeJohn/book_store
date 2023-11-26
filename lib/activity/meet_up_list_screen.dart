@@ -1,6 +1,5 @@
 import 'package:db/common/api/address.dart';
 import 'package:db/common/const/color.dart';
-import 'package:db/home/common/layout.dart';
 import 'package:flutter/material.dart';
 
 class MeetUpList extends StatefulWidget {

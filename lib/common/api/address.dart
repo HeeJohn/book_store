@@ -21,7 +21,7 @@ const logInURL = '/';
 const splashURL = '/splash';
 const gpsURL = '/geo';
 const addTableURL = '/addTable';
-const tableSearchURL = 'tableSearch';
+const tableSearchURL = '/tableSearch';
 
 /*---------------- current device url --------------*/
 const iosSimulatorIP = 'http://localhost:3000';

@@ -7,23 +7,19 @@ import 'package:flutter/material.dart';
 class FloatingSheetWithSearchBar extends StatelessWidget {
   final String title;
   final VoidCallback onDonePressed;
-  final int tupleCount;
-  final VoidCallback onTap;
-  final ValueChanged onChanged;
+  final ValueChanged<String> onChanged;
   final ValueChanged onSelected;
-  final int selectedItemCount;
-  final Map<int, ClassModel> classModels;
+  final List<ClassModel> classModels;
+  final Map<int, ClassModel> recomClassModels;
 
   const FloatingSheetWithSearchBar({
     super.key,
     required this.title,
     required this.onDonePressed,
-    required this.tupleCount,
     required this.onChanged,
     required this.onSelected,
-    required this.onTap,
-    required this.selectedItemCount,
     required this.classModels,
+    required this.recomClassModels,
   });
 
   @override
@@ -74,6 +70,10 @@ class FloatingSheetWithSearchBar extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     SearchAnchor(
+                      viewConstraints: BoxConstraints(
+                        maxHeight: MediaQuery.of(context).size.height / 2,
+                      ),
+                      isFullScreen: false,
                       builder:
                           (BuildContext context, SearchController controller) {
                         return SearchBar(
@@ -95,8 +95,10 @@ class FloatingSheetWithSearchBar extends StatelessWidget {
                           padding: const MaterialStatePropertyAll<EdgeInsets>(
                             EdgeInsets.only(right: 16),
                           ),
-                          onTap: onTap,
-                          onChanged: onChanged,
+                          onChanged: (val) {
+                            onChanged(val);
+                          },
+                          onTap: () {},
                           leading: Container(
                             color: const Color.fromARGB(255, 223, 223, 223),
                             width: 60,
@@ -111,13 +113,14 @@ class FloatingSheetWithSearchBar extends StatelessWidget {
                       suggestionsBuilder:
                           (BuildContext context, SearchController controller) {
                         return List<ListTile>.generate(
-                          5,
+                          recomClassModels.length,
                           (int index) {
                             return ListTile(
-                              title: Text(classModels[index]!.className),
+                              title: Text(recomClassModels[index]!.className),
                               onTap: () {
-                                controller.closeView(
-                                    classModels[index]!.classCode.toString());
+                                controller.closeView(recomClassModels[index]!
+                                    .classCode
+                                    .toString());
                                 onSelected(controller.value);
                               },
                             );
@@ -129,8 +132,8 @@ class FloatingSheetWithSearchBar extends StatelessWidget {
                       height: 20,
                     ),
                     ScheduleTable(
-                      sizeOfTuple: selectedItemCount,
-                      classTable: const [],
+                      sizeOfTuple: classModels.length,
+                      classTable: classModels,
                     ),
                   ],
                 ),
