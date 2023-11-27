@@ -1,6 +1,8 @@
 const db = require("../../mysql.js");
 
 function request(body, response) {
+
+  console.log(`>> login.js >> data :  ${body}`);
   //----> sql
   let targetTable = 'USER';
   let sql = `SELECT * FROM ${targetTable} WHERE PHONE = ? AND PASSWORD = ?;`;
@@ -9,6 +11,7 @@ function request(body, response) {
   db.query(sql, param, function (error, result) {
       if (error) {
         console.log(error);
+        console.log(`>> login.js >> login faield id`);
         response.writeHead(404);
         response.end(JSON.stringify({"message": "failed to login"}));
       } else { /* ------ login success get insert session -------- */
@@ -20,13 +23,14 @@ function request(body, response) {
 
         db.query(sql, param, function (error, insert_result) {
             if (error) {
+              console.log(`>> login.js >> insert student id`);
               console.log(error);
               response.writeHead(404);
               response.end(JSON.stringify({"message": "duplicated"}));
             } else { /* ------ session id created successfully -------- */
             //----> sql
             let sql = `SELECT session_id FROM ${targetTable} WHERE STUDENT_ID = ?;`;
-
+              console.log(`>> login.js >> select session Id`);
               db.query( sql, param, function (error, result) {
                   if (error) {
                     console.log(error);

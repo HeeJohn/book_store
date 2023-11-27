@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:db/activity/common/bottom_sheet_with_search.dart';
 import 'package:db/common/api/address.dart';
 import 'package:db/common/api/models/class_model.dart';
@@ -8,6 +7,7 @@ import 'package:db/common/const/color.dart';
 import 'package:db/common/hive/boxes.dart';
 import 'package:db/common/hive/user.dart';
 import 'package:db/common/local_storage/const.dart';
+
 import 'package:flutter/material.dart';
 
 class SearchScreen extends StatefulWidget {
@@ -27,29 +27,26 @@ class _SearchScreenState extends State<SearchScreen> {
   Map<int, ClassModel> selectClassModels = {};
   Map<int, ClassModel> recomClassModels = {};
   List<ClassModel> classTable = [];
-  @override
-  void initState() {
-    getStudentInfo();
-    super.initState();
-  }
+  SearchController searchController = SearchController();
 
   Future<List<ClassModel>?> getTableInfo() async {
     ApiService classInfo = ApiService();
-    if (sessionID == 0) {
-      final response = await classInfo.getRequest(sessionID!, tableURL, null);
+    sessionID = await storage.read(key: sessionIDLS);
+    if (sessionID != null) {
+      final response = await classInfo.getRequest(sessionID!, myTableURL);
       if ('success' == await classInfo.reponseMessageCheck(response)) {
         return jsonDecode(response!.data['data']);
       }
     }
 
-    return null;
+    return [];
   }
 
   void getStudentInfo() async {
     name = '백효영';
     id = 201901366;
     sessionID = await storage.read(key: sessionIDLS);
-    if (sessionID != null) {
+    if (sessionID == null) {
       final box = Boxes.getUserData();
       UserData? student = box.get(sessionID);
       if (student != null) {
@@ -59,28 +56,37 @@ class _SearchScreenState extends State<SearchScreen> {
     }
   }
 
+  @override
+  void initState() {
+    getStudentInfo();
+    super.initState();
+  }
+
+  void onCalcelPressed(index) {
+    setState(() {});
+  }
+
   void onDonePressed() async {
     ApiService addTable = ApiService();
     if (sessionID != null) {
-      final response =
-          await addTable.postRequest(sessionID!, addTableURL, tableInfo);
+      final response = await addTable
+          .postRequest(sessionID!, tableAddURL, {'class_code': tableInfo});
       if ('success ' == await addTable.reponseMessageCheck(response)) {
-        for (var element in selectClassModels.values) {
-          classTable.add(element);
-        }
+        setState(() {
+          Navigator.of(context).pop();
+        });
       }
-      setState(() {});
     }
   }
 
-  void onSearchChanged(String val) async {
+  Future<bool> onSearchChanged(String? val, SearchController controller) async {
     print(val);
     print("======================================================");
     recomClassModels.clear();
     ApiService classInfo = ApiService();
     if (sessionID != null) {
-      dynamic response =
-          await classInfo.getRequest(sessionID!, tableSearchURL, {'text': val});
+      dynamic response = await classInfo
+          .postRequest(sessionID!, tableSearchURL, {'text': val});
       if ('success' == await classInfo.reponseMessageCheck(response)) {
         dynamic received = await jsonDecode(response!.data);
         if (await received['data'] != null) {
@@ -93,18 +99,25 @@ class _SearchScreenState extends State<SearchScreen> {
             recomClassModels.putIfAbsent(
                 i, () => ClassModel.fromJson(received['data'][i]));
           }
+
+          if (!controller.isOpen) {
+            controller.openView();
+          }
+          return true;
         }
       }
     }
+    return false;
   }
 
-  void onSearchSelected(val) {
-    if (val != null) {
-      setState(() {
-        tableInfo.add(val as int);
-        classTable.add(recomClassModels.values.elementAt(val.toInt()));
-      });
-    }
+  void onSearchSelected(String val, ClassModel classModel) {
+    print(val);
+    setState(() {
+      if (!tableInfo.contains(int.parse(val))) {
+        tableInfo.add(int.parse(val));
+        classTable.add(classModel);
+      }
+    });
   }
 
   @override
@@ -239,7 +252,7 @@ class _SearchScreenState extends State<SearchScreen> {
                     //     ),
                     //   );
                     // }
-                    if (!snapshot.hasData) {
+                    if (snapshot.data!.isEmpty) {
                       return Center(
                         child: SizedBox(
                           width: 200,
@@ -250,6 +263,8 @@ class _SearchScreenState extends State<SearchScreen> {
                               context: context,
                               builder: (BuildContext context) {
                                 return FloatingSheetWithSearchBar(
+                                  onCalcelPressed: onCalcelPressed,
+                                  mainController: searchController,
                                   classModels: classTable,
                                   recomClassModels: recomClassModels,
                                   title: "시간표를 등록하세요",
@@ -272,9 +287,34 @@ class _SearchScreenState extends State<SearchScreen> {
                         ),
                       );
                     }
-                    return ScheduleTable(
-                      classTable: snapshot.data!,
-                      sizeOfTuple: sizeOfTuple,
+                    return GestureDetector(
+                      onTap: () => showModalBottomSheet(
+                        isScrollControlled: true,
+                        context: context,
+                        builder: (BuildContext context) {
+                          return FloatingSheetWithSearchBar(
+                            onCalcelPressed: onCalcelPressed,
+                            mainController: searchController,
+                            classModels: classTable,
+                            recomClassModels: recomClassModels,
+                            title: "시간표를 등록하세요",
+                            onDonePressed: onDonePressed,
+                            onChanged: onSearchChanged,
+                            onSelected: onSearchSelected,
+                          );
+                        },
+                        shape: const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.vertical(
+                            top: Radius.circular(30),
+                          ),
+                        ),
+                      ),
+                      child: ScheduleTable(
+                        onCalcelPressed: onCalcelPressed,
+                        isForTableSearch: false,
+                        classTable: snapshot.data!,
+                        sizeOfTuple: sizeOfTuple,
+                      ),
                     );
                   },
                 ),
@@ -290,11 +330,15 @@ class _SearchScreenState extends State<SearchScreen> {
 class ScheduleTable extends StatelessWidget {
   final List<ClassModel> classTable;
   final int sizeOfTuple;
+  final bool isForTableSearch;
+  final ValueChanged<int> onCalcelPressed;
 
   const ScheduleTable({
     super.key,
     required this.sizeOfTuple,
     required this.classTable,
+    required this.isForTableSearch,
+    required this.onCalcelPressed,
   });
 
   @override
@@ -324,7 +368,7 @@ class ScheduleTable extends StatelessWidget {
           return TableRow(
             children: [
               Container(
-                width: 100,
+                width: 150,
                 height: 70,
                 color: Colors.grey,
                 alignment: Alignment.center,
@@ -350,15 +394,43 @@ class ScheduleTable extends StatelessWidget {
                 color: Colors.white,
                 alignment: Alignment.center,
                 padding: const EdgeInsets.all(8),
-                child: IconButton(
-                  onPressed: () => showBook(
-                    classTable[index].classCode,
-                  ),
-                  icon: const Icon(
-                    Icons.image_search_rounded,
-                  ),
+                child: Text(
+                  classTable[index].classCredit.toString(),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
+              if (!isForTableSearch)
+                Container(
+                  width: 100,
+                  height: 70,
+                  color: Colors.white,
+                  alignment: Alignment.center,
+                  padding: const EdgeInsets.all(8),
+                  child: IconButton(
+                    onPressed: () => showBook(
+                      classTable[index].classCode,
+                    ),
+                    icon: const Icon(
+                      Icons.image_search_rounded,
+                    ),
+                  ),
+                ),
+              if (isForTableSearch)
+                Container(
+                  width: 100,
+                  height: 70,
+                  color: Colors.white,
+                  alignment: Alignment.center,
+                  padding: const EdgeInsets.all(8),
+                  child: IconButton(
+                    onPressed: () =>
+                        onCalcelPressed(classTable[index].classCode),
+                    icon: const Icon(
+                      Icons.cancel_presentation_outlined,
+                      color: Colors.red,
+                    ),
+                  ),
+                ),
             ],
           );
         },

@@ -63,7 +63,7 @@ class _SplashScreenState extends State<SplashScreen> {
   Future<String> login(String authInfo) async {
     final login = ApiService();
 
-    final response = await login.getRequest(authInfo, splashURL, null);
+    final response = await login.getRequest(authInfo, splashURL);
     if (response != null) {
       saveUserInfo(jsonDecode(response.data)['loggedUser']);
     }
@@ -94,7 +94,7 @@ class BottomCircleProgressBar extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         SizedBox(
-          width: MediaQuery.of(context).size.width * 1 / 2,
+          width: MediaQuery.of(context).size.width * 1 / 3,
           child: Image.asset(
             'asset/img/progress.gif',
             fit: BoxFit.contain,

@@ -1,7 +1,8 @@
 const db = require('../../mysql.js');
 
 
-function request(body, response) {
+function request(id, body, response) {
+  console.log(`>> tableSearch.js >> data :  ${body}, id : ${id}`);
 
   //----> sql
   let targetTable= 'class';

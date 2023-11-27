@@ -16,6 +16,7 @@ class ApiService {
         ip + toUrl,
         options: Options(
           headers: {
+            'Content-Type': 'application/json',
             "authorization": 'Basic $sessionID',
           },
         ),
@@ -29,8 +30,7 @@ class ApiService {
     }
   }
 
-  Future<Response?> getRequest(
-      String sessionID, String toUrl, dynamic data) async {
+  Future<Response?> getRequest(String sessionID, String toUrl) async {
     try {
       final Response<dynamic> response = await dio.get(
         ip + toUrl,
@@ -39,7 +39,6 @@ class ApiService {
             "authorization": 'Basic $sessionID',
           },
         ),
-        data: data,
       );
 
       return response;

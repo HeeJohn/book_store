@@ -6,7 +6,7 @@ class ClassModel {
 
   ClassModel.fromJson(Map<String, dynamic> json)
       : className = json['class_name'],
-        classCode = json['class_code'],
+        classCode = json['class_id'],
         classProf = json['professor'],
         classCredit = json['credit'];
 }

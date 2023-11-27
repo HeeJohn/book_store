@@ -1,7 +1,7 @@
 const db = require("../../mysql.js");
 
 function request(body, response) {
-  
+  console.log(`>> splash.js >> data :  ${body}`);
   //----> sql
   let sql = `SELECT * FROM ? WHERE PHONE = ? AND PASSWORD = ?`;
   let targetTable = 'user';

@@ -1,20 +1,30 @@
 const db = require('../../mysql.js');
 
-
-function request(body, response) {
-
+function request(id, body, response) {
+  console.log(`>> tableAdd.js >> data :  ${body}`);
+  //parse
   //----> sql
-  let targetTable= 'user';
-  let sql = `INSERT INTO ${targetTable} (phone, name, student_id, password) VALUES (?, ?, ?, ?);`;
-  let param = [body.phone, body.name, body.id, body.password];
+  let targetTable= 'class_table';
+  let guide = `student_id`;
+  let values =`${id}`;
+  let param = body.class_code;
+  console.log(param);
+  for(let i =0;i<param.length;i++){
+    guide += `,class${i+1}_id`;
+    values += ',?';
+  }
+  let sql = `INSERT INTO ${targetTable}(${guide}) VALUES(${values})`;
+  console.log(sql);
+  console.log(param);
   db.query(sql, param, function (error, result) {
       if (error) {
-        result.message = "signUp done";
-        result.writeHead(404);
-        response.end(JSON.stringify(result));
+        console.log(error);
+        response.end(JSON.stringify({'message' : 'inserting classTable info into class table failed.'}));
       } else {
+        console.log(sql);
+        console.log(param);
         response.writeHead(200);
-        result.message = "signUp done";
+        result.message = "success";
         response.end(JSON.stringify(result));
       }
     }

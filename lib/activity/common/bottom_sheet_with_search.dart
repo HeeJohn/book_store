@@ -2,17 +2,21 @@ import 'package:db/activity/common/round_small_btn.dart';
 import 'package:db/activity/search_screen.dart';
 import 'package:db/common/api/models/class_model.dart';
 import 'package:db/common/const/color.dart';
+import 'package:db/home/splash.dart';
 import 'package:flutter/material.dart';
 
 class FloatingSheetWithSearchBar extends StatelessWidget {
   final String title;
   final VoidCallback onDonePressed;
-  final ValueChanged<String> onChanged;
-  final ValueChanged onSelected;
+  final Future<bool> Function(String?, SearchController) onChanged;
+  final void Function(String, ClassModel) onSelected;
   final List<ClassModel> classModels;
   final Map<int, ClassModel> recomClassModels;
+  final FocusNode focusNode = FocusNode();
+  final SearchController mainController;
+  final ValueChanged<int> onCalcelPressed;
 
-  const FloatingSheetWithSearchBar({
+  FloatingSheetWithSearchBar({
     super.key,
     required this.title,
     required this.onDonePressed,
@@ -20,6 +24,8 @@ class FloatingSheetWithSearchBar extends StatelessWidget {
     required this.onSelected,
     required this.classModels,
     required this.recomClassModels,
+    required this.mainController,
+    required this.onCalcelPressed,
   });
 
   @override
@@ -70,10 +76,7 @@ class FloatingSheetWithSearchBar extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     SearchAnchor(
-                      viewConstraints: BoxConstraints(
-                        maxHeight: MediaQuery.of(context).size.height / 2,
-                      ),
-                      isFullScreen: false,
+                      searchController: mainController,
                       builder:
                           (BuildContext context, SearchController controller) {
                         return SearchBar(
@@ -96,7 +99,8 @@ class FloatingSheetWithSearchBar extends StatelessWidget {
                             EdgeInsets.only(right: 16),
                           ),
                           onChanged: (val) {
-                            onChanged(val);
+                            onChanged(val, controller);
+                            // 예시: 입력 필드에 포커스를 설정
                           },
                           onTap: () {},
                           leading: Container(
@@ -110,20 +114,31 @@ class FloatingSheetWithSearchBar extends StatelessWidget {
                           ),
                         );
                       },
-                      suggestionsBuilder:
-                          (BuildContext context, SearchController controller) {
-                        return List<ListTile>.generate(
-                          recomClassModels.length,
+                      suggestionsBuilder: (context, controller) async {
+                        if (await onChanged(
+                            controller.value.text, controller)) {
+                          return List<ListTile>.generate(
+                            recomClassModels.length,
+                            (int index) {
+                              return ListTile(
+                                title: Text(recomClassModels[index]!.className),
+                                onTap: () {
+                                  controller.closeView(recomClassModels[index]!
+                                      .classCode
+                                      .toString());
+
+                                  onSelected(controller.value.text,
+                                      recomClassModels.values.elementAt(index));
+                                  controller.clear();
+                                },
+                              );
+                            },
+                          );
+                        }
+                        return List<Widget>.generate(
+                          5,
                           (int index) {
-                            return ListTile(
-                              title: Text(recomClassModels[index]!.className),
-                              onTap: () {
-                                controller.closeView(recomClassModels[index]!
-                                    .classCode
-                                    .toString());
-                                onSelected(controller.value);
-                              },
-                            );
+                            return const BottomCircleProgressBar();
                           },
                         );
                       },
@@ -132,6 +147,8 @@ class FloatingSheetWithSearchBar extends StatelessWidget {
                       height: 20,
                     ),
                     ScheduleTable(
+                      onCalcelPressed: onCalcelPressed,
+                      isForTableSearch: true,
                       sizeOfTuple: classModels.length,
                       classTable: classModels,
                     ),

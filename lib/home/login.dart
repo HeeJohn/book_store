@@ -98,7 +98,7 @@ class _LogInScreenState extends State<LogInScreen> {
 
   Future<void> login(dynamic authInfo) async {
     final login = ApiService();
-    final response = await login.getRequest(
+    final response = await login.postRequest(
       "login",
       logInURL,
       authInfo,

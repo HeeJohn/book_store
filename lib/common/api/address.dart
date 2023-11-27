@@ -16,11 +16,11 @@ const registeredBookURL = '/registeredBook';
 const notifyURL = '/notify';
 const imageURL = '/image';
 const signUpURL = '/signup';
-const tableURL = '/table';
+const myTableURL = '/myTable';
 const logInURL = '/';
 const splashURL = '/splash';
 const gpsURL = '/geo';
-const addTableURL = '/addTable';
+const tableAddURL = '/tableAdd';
 const tableSearchURL = '/tableSearch';
 
 /*---------------- current device url --------------*/

@@ -2,7 +2,7 @@ const db = require('../../mysql.js');
 
 
 function request(body, response) {
-
+  console.log(`>> signUp.js >> data :  ${body}`);
   //----> sql
   let targetTable= 'user';
   let sql = `INSERT INTO ${targetTable} (phone, name, student_id, password) VALUES (?, ?, ?, ?);`;
