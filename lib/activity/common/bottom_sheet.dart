@@ -3,25 +3,32 @@ import 'dart:io';
 import 'package:db/activity/common/custom_text.dart';
 import 'package:db/activity/common/round_small_btn.dart';
 import 'package:db/activity/common/state_slider.dart';
+import 'package:db/common/api/models/class_model.dart';
 import 'package:db/common/const/color.dart';
+import 'package:db/home/splash.dart';
 import 'package:flutter/material.dart';
 
 class FloatingSheet extends StatelessWidget {
   final String title;
   final String? className;
+  final Future<bool> Function(String?, SearchController) onChanged;
+  final Map<int, ClassModel> recomClassModels;
   final VoidCallback onDonePressed;
   final VoidCallback onDatePressed;
   final TextEditingController comController, nameController, priceController;
   final String? publishedDate;
-  final ValueChanged refresh;
   final List<int> bookState;
   final List<ValueChanged?> onSliderChanged;
   final List<String> label;
+  final ValueChanged<String> onTap;
   final int sum;
-  final void Function()? tapOnBookPhoto;
+  final Future<void> Function() tapOnBookPhoto;
   final File? bookImage;
+
   const FloatingSheet({
     super.key,
+    required this.onTap,
+    required this.onChanged,
     required this.bookState,
     required this.onSliderChanged,
     required this.onDatePressed,
@@ -31,11 +38,11 @@ class FloatingSheet extends StatelessWidget {
     required this.comController,
     required this.nameController,
     required this.priceController,
-    required this.refresh,
     required this.label,
     required this.sum,
     required this.bookImage,
     required this.tapOnBookPhoto,
+    required this.recomClassModels,
     this.publishedDate,
   });
 
@@ -89,7 +96,7 @@ class FloatingSheet extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     GestureDetector(
-                      onTap: tapOnBookPhoto,
+                      onTap: () => tapOnBookPhoto,
                       child: Container(
                         width: MediaQuery.of(context).size.width / 2,
                         height: MediaQuery.of(context).size.height / 3,
@@ -152,11 +159,9 @@ class FloatingSheet extends StatelessWidget {
                           padding: const MaterialStatePropertyAll<EdgeInsets>(
                             EdgeInsets.only(right: 16),
                           ),
-                          onTap: () {
-                            controller.openView();
-                          },
+                          onTap: () {},
                           onChanged: (value) {
-                            controller.openView();
+                            onChanged(value, controller);
                           },
                           leading: Container(
                             color: const Color.fromARGB(255, 223, 223, 223),
@@ -169,19 +174,28 @@ class FloatingSheet extends StatelessWidget {
                           ),
                         );
                       },
-                      suggestionsBuilder:
-                          (BuildContext context, SearchController controller) {
-                        return List<ListTile>.generate(
+                      suggestionsBuilder: (context, controller) async {
+                        if (await onChanged(
+                            controller.value.text, controller)) {
+                          return List<ListTile>.generate(
+                            recomClassModels.length,
+                            (int index) {
+                              return ListTile(
+                                title: Text(recomClassModels[index]!.className),
+                                onTap: () {
+                                  controller.closeView(recomClassModels[index]!
+                                      .className
+                                      .toString());
+                                  onTap(controller.value.text);
+                                },
+                              );
+                            },
+                          );
+                        }
+                        return List<Widget>.generate(
                           5,
                           (int index) {
-                            final String item = 'item $index';
-                            return ListTile(
-                              title: Text(item),
-                              onTap: () {
-                                controller.closeView(item);
-                                refresh(controller.text);
-                              },
-                            );
+                            return const BottomCircleProgressBar();
                           },
                         );
                       },
@@ -264,8 +278,7 @@ class FloatingSheet extends StatelessWidget {
                         itemBuilder: (context, index) {
                           return StateSlider(
                             value: bookState[index].toDouble(),
-                            onSliderChanged: (val) =>
-                                onSliderChanged[index]!(val.toInt()),
+                            onSliderChanged: onSliderChanged[index],
                             label: label[index],
                           );
                         },

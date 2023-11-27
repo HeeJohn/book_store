@@ -40,7 +40,6 @@ class ApiService {
           },
         ),
       );
-
       return response;
     } on DioException catch (e) {
       debugPrint(e.message);
@@ -58,6 +57,7 @@ class ApiService {
       dynamic res = jsonDecode(response.data);
       print(res);
       String data = res['message'];
+      print("data ::::::: $data");
       switch (data) {
         case 'success':
         case 'login done':

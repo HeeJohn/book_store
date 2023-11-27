@@ -6,23 +6,22 @@ const tableSearch = require("./request/tableSearch.js");
 const addBook = require("./request/addBook.js");
 const tableAdd = require("./request/tableAdd.js");
 const myTable = require("./request/myTable.js");
-
+const regidBooks = require("./request/regidBooks.js");
 function controller(targetUrl, body, sessionID, response) {
   /* mapping each url to appropriate function */
   const sendTo = new Map([
     [addr.signUpURL, signUp.request],
     [addr.logInURL, logIn.request],
     [addr.splashURL, signUp.request],
-    [addr.gpsURL, signUp.request],
     [addr.tableSearchURL, tableSearch.request],
     [addr.tableAddURL, tableAdd.request],
     [addr.myTableURL, myTable.request],
     [addr.addBookURL, addBook.request],
+    [addr.regidBooksURL, regidBooks.request],
   ]);
   if (sessionID == "login" || sessionID == "signup") {
     console.log(`>> controller.js >> this is for login or signup `);
     sendTo.get(targetUrl)(body, response);
-    sessionID = null;
   } else {
     // check sessionID
     console.log(`>> controller.js >> this is for session parsing `);

@@ -6,6 +6,10 @@ const tableSearchURL = '/tableSearch';
 const tableAddURL = '/tableAdd';
 const myTableURL = '/myTable';
 const addBookURL = '/addBook';
+const regidBooksURL ='/regidBooks';
 
-module.exports={signUpURL,logInURL,splashURL,
-    gpsURL,tableSearchURL, tableAddURL, myTableURL, addBookURL};
+module.exports={
+    signUpURL,logInURL,splashURL,
+    tableSearchURL, tableAddURL, myTableURL,
+    addBookURL, regidBooksURL,
+    gpsURL,};

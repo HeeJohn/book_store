@@ -1,37 +1,40 @@
 const db = require('../../mysql.js');
 
-
 function request(id, body, response) {
   console.log(`>> myTable.js >> data :  ${body}`);
   //----> sql
-  let targetTable= 'class_table';
+  let targetTable = 'class_table';
   let sql = `SELECT * FROM ${targetTable} WHERE STUDENT_ID = ?;`;
   let param = [id];
   db.query(sql, param, function (error, classCodes) {
     if (error) {
-      response.end(JSON.stringify({'message': 'failed to bring class_codes'}));
+      throw error;
+      response.end(JSON.stringify({ 'message': 'failed to bring class_codes' }));
     } else {
-      console.log(classCodes[0]);
-       let class_codes = classCodes[0].
-       
-       targetTable= 'class';
-       sql = `SELECT * FROM ${targetTable} WHERE STUDENT_ID = ?;`;
-      db.query(sql, param, function (error, result) {
+      let classIds = [];
+      for (let i = 1; i <= 10; i++) {
+        let classId = classCodes[0][`class${i}_id`];
+        if (classId !== null) {
+          classIds.push(classId);
+        }
+      }
+
+      console.log(`>> myTable.js >> classIds :  ${classIds}` );
+      targetTable = 'class';
+      sql = `SELECT * FROM ${targetTable} WHERE class_id IN (?);`;
+      db.query(sql, [classIds], function (error, result) {
         if (error) {
-          result.message = "signUp done";
+          result.message = "getting class info from mytable failed.";
           result.writeHead(404);
           response.end(JSON.stringify(result));
         } else {
           response.writeHead(200);
-          result.message = "signUp done";
-          response.end(JSON.stringify(result));
+          result.message = "success";
+          response.end(JSON.stringify({'message': 'success', 'data' : result}));
         }
-      }
-    );
+      });
     }
-  }
-);
-
-
+  });
 }
-module.exports={request};
+
+module.exports = { request };

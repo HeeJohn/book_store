@@ -4,6 +4,7 @@ import 'package:db/activity/common/bottom_sheet.dart';
 import 'package:db/activity/common/registered_book.dart';
 import 'package:db/common/api/address.dart';
 import 'package:db/common/api/models/book_model.dart';
+import 'package:db/common/api/models/class_model.dart';
 import 'package:db/common/api/request.dart';
 import 'package:db/common/const/color.dart';
 import 'package:db/common/local_storage/const.dart';
@@ -11,6 +12,7 @@ import 'package:db/home/common/layout.dart';
 import 'package:db/home/splash.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -28,19 +30,60 @@ class _RegisterScreenState extends State<RegisterScreen> {
   String? bookPrice, bookRGDate, className;
   List<int> stateNum = [2, 2, 2, 2, 2, 2];
   List<ValueChanged> onSliderChanged = [];
+  Map<int, ClassModel> recomClassModels = {};
   int sum = 0;
   static const List<String> label = ['찢김', '하이라이트', '연필자국', '펜자국', '바램', '더러움'];
   late DateTime today;
   late String? sessionID;
   File? bookImage;
+  final picker = ImagePicker();
 
-  void tapOnBookPhoto() {}
+  Future<void> getImageFromGallery() async {
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        bookImage = File(pickedFile.path);
+      });
+    }
+  }
+
   void onBookTap(bookCode) {}
   void onDonePressed() {}
-  void refresh(val) {
+  void onSearchRecomTap(val) {
     setState(() {
       className = val;
     });
+  }
+
+  Future<bool> onSearchChanged(String? val, SearchController controller) async {
+    print(val);
+    print("======================================================");
+    recomClassModels.clear();
+    ApiService classInfo = ApiService();
+    if (sessionID != null) {
+      dynamic response = await classInfo
+          .postRequest(sessionID!, tableSearchURL, {'text': val});
+      if ('success' == await classInfo.reponseMessageCheck(response)) {
+        dynamic received = await jsonDecode(response!.data);
+        if (await received['data'] != null) {
+          int size = await received['data'].length;
+          print(size);
+          if (size != 0) {
+            print(received['data'][0]);
+          }
+          for (int i = 0; i < size; i++) {
+            recomClassModels.putIfAbsent(
+                i, () => ClassModel.fromJson(received['data'][i]));
+          }
+
+          if (!controller.isOpen) {
+            controller.openView();
+          }
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   @override
@@ -52,32 +95,32 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
     onSliderChanged.add((val) {
       setState(() {
-        stateNum[0] = val;
+        stateNum[0] = val.toInt();
       });
     });
     onSliderChanged.add((val) {
       setState(() {
-        stateNum[1] = val;
+        stateNum[1] = int.parse(val);
       });
     });
     onSliderChanged.add((val) {
       setState(() {
-        stateNum[2] = val;
+        stateNum[2] = int.parse(val);
       });
     });
     onSliderChanged.add((val) {
       setState(() {
-        stateNum[3] = val;
+        stateNum[3] = int.parse(val);
       });
     });
     onSliderChanged.add((val) {
       setState(() {
-        stateNum[4] = val;
+        stateNum[4] = int.parse(val);
       });
     });
     onSliderChanged.add((val) {
       setState(() {
-        stateNum[5] = val;
+        stateNum[5] = int.parse(val);
       });
     });
 
@@ -116,15 +159,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Future<List<RegisterdBook>?> getBookInfo() async {
     ApiService registeredBook = ApiService();
     sessionID = await storage.read(key: sessionIDLS);
-    if (sessionID != null) {
-      final response =
-          await registeredBook.getRequest(sessionID!, registeredBookURL);
+    if (sessionID == null) {
+      final response = await registeredBook.getRequest(sessionID!, regidBooks);
       if ('success' == await registeredBook.reponseMessageCheck(response)) {
         final List<Map<String, String>> books =
             jsonDecode(response!.data['data']);
         List<BookModel> registeredBooks =
             books.map((e) => BookModel.fromJson(e)).toList();
-
         return registeredBooks
             .map(
               (e) => RegisterdBook(
@@ -138,7 +179,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
             .toList();
       }
     }
-
     return null;
   }
 
@@ -163,14 +203,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
           context: context,
           builder: (BuildContext context) {
             return FloatingSheet(
+              onTap: onSearchRecomTap,
+              recomClassModels: recomClassModels,
+              onChanged: onSearchChanged,
               bookImage: bookImage,
-              tapOnBookPhoto: tapOnBookPhoto,
+              tapOnBookPhoto: getImageFromGallery,
               sum: sum,
               onSliderChanged: onSliderChanged,
               label: label,
               bookState: stateNum,
               className: className,
-              refresh: refresh,
               comController: bookPublisherCTR,
               nameController: bookNameCTR,
               priceController: bookPriceCTR,

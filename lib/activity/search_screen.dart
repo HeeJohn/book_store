@@ -7,6 +7,7 @@ import 'package:db/common/const/color.dart';
 import 'package:db/common/hive/boxes.dart';
 import 'package:db/common/hive/user.dart';
 import 'package:db/common/local_storage/const.dart';
+import 'package:db/home/splash.dart';
 
 import 'package:flutter/material.dart';
 
@@ -35,11 +36,17 @@ class _SearchScreenState extends State<SearchScreen> {
     if (sessionID != null) {
       final response = await classInfo.getRequest(sessionID!, myTableURL);
       if ('success' == await classInfo.reponseMessageCheck(response)) {
-        return jsonDecode(response!.data['data']);
+        final data = jsonDecode(response!.data)['data'];
+
+        classTable.clear();
+        for (int i = 0; i < data.length; i++) {
+          classTable.add(ClassModel.fromJson(data[i]));
+        }
+
+        return classTable;
       }
     }
-
-    return [];
+    return null;
   }
 
   void getStudentInfo() async {
@@ -71,7 +78,7 @@ class _SearchScreenState extends State<SearchScreen> {
     if (sessionID != null) {
       final response = await addTable
           .postRequest(sessionID!, tableAddURL, {'class_code': tableInfo});
-      if ('success ' == await addTable.reponseMessageCheck(response)) {
+      if ('success' == await addTable.reponseMessageCheck(response)) {
         setState(() {
           Navigator.of(context).pop();
         });
@@ -243,15 +250,15 @@ class _SearchScreenState extends State<SearchScreen> {
                 FutureBuilder<List<ClassModel>?>(
                   future: getTableInfo(),
                   builder: (context, snapshot) {
-                    // if (!snapshot.hasData) {
-                    //   return const Center(
-                    //     child: SizedBox(
-                    //       width: 200,
-                    //       height: 200,
-                    //       child: BottomCircleProgressBar(),
-                    //     ),
-                    //   );
-                    // }
+                    if (!snapshot.hasData) {
+                      return const Center(
+                        child: SizedBox(
+                          width: 200,
+                          height: 200,
+                          child: BottomCircleProgressBar(),
+                        ),
+                      );
+                    }
                     if (snapshot.data!.isEmpty) {
                       return Center(
                         child: SizedBox(

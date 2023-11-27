@@ -12,7 +12,7 @@ const bookScreen = '/book';
 const meetUpListScreen = '/meetUpList';
 
 /*---------------- url --------------*/
-const registeredBookURL = '/registeredBook';
+const regidBooks = '/regidBooks';
 const notifyURL = '/notify';
 const imageURL = '/image';
 const signUpURL = '/signup';

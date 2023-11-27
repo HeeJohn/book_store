@@ -1,7 +1,7 @@
 const db = require("../../mysql.js");
 
 function request(body, response) {
-  console.log(`>> addBook.js >> data :  ${body}`);
+  console.log(`>> regidBooks.js >> data :  ${body}`);
 
   let base64Image = body.img; // image_picker에서 받아온 base64 데이터
   let base64Data = base64Image.replace(/^data:image\/\w+;base64,/, ""); // url이 포함되어있으므로 url 제거.
