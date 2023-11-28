@@ -2,15 +2,14 @@ import 'package:flutter/material.dart';
 
 class RegisterdBook extends StatelessWidget {
   final String name;
-  final String bookImage;
-  final String date;
+  final String uploadTime;
   final VoidCallback onTap;
-  final String price;
+  final int price;
+
   const RegisterdBook({
     super.key,
     required this.name,
-    required this.bookImage,
-    required this.date,
+    required this.uploadTime,
     required this.onTap,
     required this.price,
   });
@@ -31,17 +30,6 @@ class RegisterdBook extends StatelessWidget {
           children: [
             Row(
               children: [
-                SizedBox(
-                  width: 60,
-                  height: 60,
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(20),
-                    child: Image.network(
-                      bookImage,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                ),
                 const SizedBox(width: 15),
                 Text(
                   name,
@@ -56,14 +44,14 @@ class RegisterdBook extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  price,
+                  '$price원',
                   style: const TextStyle(
                       color: Colors.black,
                       fontSize: 18,
                       fontWeight: FontWeight.w700),
                 ),
                 Text(
-                  date,
+                  uploadTime,
                   style: TextStyle(
                       color: Colors.grey[800],
                       fontSize: 16,

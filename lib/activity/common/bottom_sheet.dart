@@ -1,4 +1,3 @@
-import 'dart:io';
 
 import 'package:db/activity/common/custom_text.dart';
 import 'package:db/activity/common/round_small_btn.dart';
@@ -15,22 +14,24 @@ class FloatingSheet extends StatelessWidget {
   final Map<int, ClassModel> recomClassModels;
   final VoidCallback onDonePressed;
   final VoidCallback onDatePressed;
-  final TextEditingController comController, nameController, priceController;
+  final TextEditingController comController,
+      nameController,
+      priceController,
+      authorController;
   final String? publishedDate;
   final List<int> bookState;
-  final List<ValueChanged?> onSliderChanged;
   final List<String> label;
-  final ValueChanged<String> onTap;
+  final void Function(String, int) onTap;
   final int sum;
-  final Future<void> Function() tapOnBookPhoto;
-  final File? bookImage;
 
+  final List<void Function(double, int)> polledValue;
   const FloatingSheet({
     super.key,
+    required this.authorController,
+    required this.polledValue,
     required this.onTap,
     required this.onChanged,
     required this.bookState,
-    required this.onSliderChanged,
     required this.onDatePressed,
     required this.className,
     required this.title,
@@ -40,8 +41,6 @@ class FloatingSheet extends StatelessWidget {
     required this.priceController,
     required this.label,
     required this.sum,
-    required this.bookImage,
-    required this.tapOnBookPhoto,
     required this.recomClassModels,
     this.publishedDate,
   });
@@ -95,45 +94,6 @@ class FloatingSheet extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    GestureDetector(
-                      onTap: () => tapOnBookPhoto,
-                      child: Container(
-                        width: MediaQuery.of(context).size.width / 2,
-                        height: MediaQuery.of(context).size.height / 3,
-                        alignment: Alignment.bottomCenter,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(40),
-                          border: Border.all(
-                            color: grey,
-                            width: 2,
-                          ),
-                          image: bookImage == null
-                              ? null
-                              : DecorationImage(
-                                  image: FileImage(bookImage!),
-                                  fit: BoxFit.cover,
-                                ),
-                        ),
-                        //Adds black gradient from bottom to top to image
-                        child: Container(
-                          width: double.infinity,
-                          alignment: Alignment.bottomCenter,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(40),
-                            gradient: LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [
-                                Colors.transparent,
-                                Colors.black.withOpacity(0.0),
-                                Colors.black.withOpacity(0.1),
-                                Colors.black.withOpacity(0.2),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
                     const SizedBox(
                       height: 15,
                     ),
@@ -186,7 +146,8 @@ class FloatingSheet extends StatelessWidget {
                                   controller.closeView(recomClassModels[index]!
                                       .className
                                       .toString());
-                                  onTap(controller.value.text);
+                                  onTap(controller.value.text,
+                                      recomClassModels[index]!.classCode);
                                 },
                               );
                             },
@@ -216,6 +177,15 @@ class FloatingSheet extends StatelessWidget {
                       label: "책이름",
                       hintText: "항공우주학개론",
                       controller: nameController,
+                      textinputType: TextInputType.name,
+                    ),
+                    const SizedBox(
+                      height: 15,
+                    ),
+                    CustomTextField(
+                      label: "저자",
+                      hintText: "홍길동",
+                      controller: authorController,
                       textinputType: TextInputType.name,
                     ),
                     const SizedBox(
@@ -269,26 +239,31 @@ class FloatingSheet extends StatelessWidget {
                     const SizedBox(
                       height: 15,
                     ),
-                    SizedBox(
+                    Container(
+                      color: Colors.grey[200],
                       height: 100,
                       width: MediaQuery.of(context).size.width,
-                      child: ListView.builder(
+                      child: SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
-                        itemCount: label.length,
-                        itemBuilder: (context, index) {
-                          return StateSlider(
-                            value: bookState[index].toDouble(),
-                            onSliderChanged: onSliderChanged[index],
-                            label: label[index],
-                          );
-                        },
+                        child: Row(
+                          children: List.generate(
+                            label.length,
+                            (index) => StateSlider(
+                              pollValue: (val) {
+                                print("from bottomSheet : $val");
+                                polledValue[index](val, index);
+                              },
+                              label: label[index],
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                     const SizedBox(
                       height: 15,
                     ),
                     Text(
-                      '책상태 평균점수: $sum',
+                      '책상태 평균점수: ${(sum / label.length).ceilToDouble()}',
                       style: const TextStyle(
                         color: grey,
                         fontWeight: FontWeight.w500,

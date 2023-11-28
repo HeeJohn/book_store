@@ -127,6 +127,16 @@ class _SearchScreenState extends State<SearchScreen> {
     });
   }
 
+  void onLogOutPressed() async {
+    if (sessionID != null) {
+      final logOut = ApiService();
+      final response = await logOut.getRequest(sessionID!, logOutURL);
+      if ('success' == await logOut.reponseMessageCheck(response)) {
+        await storage.deleteAll();
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -207,24 +217,52 @@ class _SearchScreenState extends State<SearchScreen> {
                     const SizedBox(
                       height: 20,
                     ),
-                    Container(
-                      decoration: BoxDecoration(
-                        color: grey,
-                        borderRadius: BorderRadius.circular(1000),
-                      ),
-                      width: 150,
-                      height: 150,
-                      child: const Icon(
-                        Icons.person_4,
-                        color: grey,
-                        size: 150,
-                        shadows: [
-                          Shadow(
-                            color: Colors.white,
-                            offset: Offset.zero,
-                            blurRadius: 20,
-                          )
-                        ],
+                    GestureDetector(
+                      onTap: () {
+                        showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                title: const Text('로그아웃'),
+                                content: const Text('로그아웃을 하시겠습니까?'),
+                                actions: <Widget>[
+                                  TextButton(
+                                    onPressed: () {
+                                      onLogOutPressed();
+                                      Navigator.of(context)
+                                          .popUntil((route) => false);
+                                    },
+                                    child: const Text('예'),
+                                  ),
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                    },
+                                    child: const Text('아니오'),
+                                  ),
+                                ],
+                              );
+                            });
+                      },
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: grey,
+                          borderRadius: BorderRadius.circular(1000),
+                        ),
+                        width: 150,
+                        height: 150,
+                        child: const Icon(
+                          Icons.person_4,
+                          color: grey,
+                          size: 150,
+                          shadows: [
+                            Shadow(
+                              color: Colors.white,
+                              offset: Offset.zero,
+                              blurRadius: 20,
+                            )
+                          ],
+                        ),
                       ),
                     ),
                     Text(

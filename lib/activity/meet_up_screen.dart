@@ -1,5 +1,3 @@
-import 'dart:io';
-import 'package:db/activity/common/book_photo.dart';
 import 'package:db/activity/common/map_screen.dart';
 import 'package:db/common/const/color.dart';
 import 'package:db/home/common/layout.dart';
@@ -15,7 +13,6 @@ class MeetUpScreen extends StatelessWidget {
       'https://www.google.com/url?sa=i&url=https%3A%2F%2Fykbook.com%2Fshop%2Fitem.php%3Fit_id%3D9999040951&psig=AOvVaw3h1Auu7obdg0FFmh0itXsU&ust=1700409333991000&source=images&cd=vfe&opi=89978449&ved=0CBEQjRxqFwoTCOCp28T0zYIDFQAAAAAdAAAAABAE';
   @override
   Widget build(BuildContext context) {
-    File? bookImage;
     return MainLayout(
       children: [
         Row(
@@ -152,29 +149,9 @@ class MeetUpScreen extends StatelessWidget {
                           color: Colors.black, // 테두리 색상을 검은색으로 변경
                         ),
                       ),
-                      child: Row(
+                      child: const Row(
                         children: [
                           Expanded(
-                            child: Column(
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.only(
-                                    top: 7,
-                                  ),
-                                  child: BookPhoto(
-                                    url: book,
-                                    height: MediaQuery.of(context).size.height *
-                                            1 /
-                                            4 -
-                                        10,
-                                    bookImage: bookImage,
-                                    tapOnBookPhoto: () {},
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.center,
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,

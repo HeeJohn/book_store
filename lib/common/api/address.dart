@@ -12,12 +12,14 @@ const bookScreen = '/book';
 const meetUpListScreen = '/meetUpList';
 
 /*---------------- url --------------*/
-const regidBooks = '/regidBooks';
+const regidBooksURL = '/regidBooks';
+const addBookURL = '/addBook';
 const notifyURL = '/notify';
 const imageURL = '/image';
 const signUpURL = '/signup';
 const myTableURL = '/myTable';
 const logInURL = '/';
+const logOutURL = '/logout';
 const splashURL = '/splash';
 const gpsURL = '/geo';
 const tableAddURL = '/tableAdd';

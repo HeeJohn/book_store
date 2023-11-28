@@ -22,12 +22,13 @@ function request(body, response) {
         let param =  [result[0].student_id];
 
         db.query(sql, param, function (error, insert_result) {
-            if (error) {
+          if(error){
+            if (error.code= 'ER_DUP_ENTRY') {
               console.log(`>> login.js >> insert student id`);
               console.log(error);
-              response.writeHead(404);
               response.end(JSON.stringify({"message": "duplicated"}));
-            } else { /* ------ session id created successfully -------- */
+            }
+          } else { /* ------ session id created successfully -------- */
             //----> sql
             let sql = `SELECT session_id FROM ${targetTable} WHERE STUDENT_ID = ?;`;
               console.log(`>> login.js >> select session Id`);

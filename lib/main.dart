@@ -1,5 +1,4 @@
 import 'package:db/activity/common/bottom_bar.dart';
-import 'package:db/activity/common/book.dart';
 import 'package:db/activity/meet_up_list_screen.dart';
 import 'package:db/activity/meet_up_screen.dart';
 import 'package:db/activity/register_screen.dart';
@@ -37,7 +36,6 @@ class BookStore extends StatelessWidget {
         bottomBar: (context) => const BottomBar(),
         registerScreen: (context) => const RegisterScreen(),
         meetUpScreen: (context) => const MeetUpScreen(),
-        bookScreen: (context) => const BookScreen(),
         meetUpListScreen: (context) => const MeetUpList(),
       },
     );

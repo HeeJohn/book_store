@@ -7,9 +7,9 @@ const tableAddURL = '/tableAdd';
 const myTableURL = '/myTable';
 const addBookURL = '/addBook';
 const regidBooksURL ='/regidBooks';
-
+const logOutURL ='/logout';
 module.exports={
-    signUpURL,logInURL,splashURL,
+    signUpURL,logInURL,splashURL, logOutURL,
     tableSearchURL, tableAddURL, myTableURL,
     addBookURL, regidBooksURL,
     gpsURL,};
