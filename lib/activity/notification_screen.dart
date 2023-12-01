@@ -19,7 +19,7 @@ class NotificationScreen extends StatefulWidget {
 class _NotificationScreenState extends State<NotificationScreen> {
   List<MeetingModel> meetingList = [];
 
-  void onRejectPressed(MeetingModel meetingModel) async {
+  void onAcceptPressed(MeetingModel meetingModel) async {
     ApiService toMeeUpList = ApiService();
     final sessionID = await storage.read(key: sessionIDLS);
     if (sessionID != null) {
@@ -30,14 +30,14 @@ class _NotificationScreenState extends State<NotificationScreen> {
     }
   }
 
-  void onAcceptPressed(MeetingModel meetingModel) async {
+  void onRejectPressed(MeetingModel meetingModel) async {
     ApiService delNotBox = ApiService();
     final sessionID = await storage.read(key: sessionIDLS);
     if (sessionID != null) {
       final response = await delNotBox.postRequest(
         sessionID,
         notBoxURL,
-        {'book_id': meetingModel.bookID},
+        {'bookID': meetingModel.bookID},
       );
       if ('success' == await delNotBox.reponseMessageCheck(response)) {
         setState(() {});
