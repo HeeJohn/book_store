@@ -10,13 +10,9 @@ const app = http.createServer(function (request, response) {
   let requestData = "";
   const headers = request.headers["authorization"];
   console.log(">> server.js >> Headers:", headers);
-  const sessionID = headers.substring("Basic".length).trim();
+  const sessionID = headers.substring("Basic".length+1).trim();
   console.log(`>> server.js >> ${sessionID}`);
 
-  if (method == "GET") {
-    console.log(">> server.js >> isSide get");
-    ctr.controller(targetUrl, null, sessionID, response);
-  } else {
     request.on("data", function (stream) {
       requestData += stream;
     });
@@ -26,6 +22,6 @@ const app = http.createServer(function (request, response) {
       console.log(`>> server.js >> ${parsedData}`);
       ctr.controller(targetUrl, parsedData, sessionID, response);
     });
-  }
+  
 });
 app.listen(3000);

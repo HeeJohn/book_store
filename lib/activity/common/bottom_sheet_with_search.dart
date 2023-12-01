@@ -2,21 +2,19 @@ import 'package:db/activity/common/round_small_btn.dart';
 import 'package:db/activity/search_screen.dart';
 import 'package:db/common/api/models/class_model.dart';
 import 'package:db/common/const/color.dart';
-import 'package:db/home/splash.dart';
 import 'package:flutter/material.dart';
 
-class FloatingSheetWithSearchBar extends StatelessWidget {
+class FloatingSheetWithSearchBar extends StatefulWidget {
   final String title;
   final VoidCallback onDonePressed;
   final Future<bool> Function(String?, SearchController) onChanged;
   final void Function(String, ClassModel) onSelected;
   final List<ClassModel> classModels;
   final Map<int, ClassModel> recomClassModels;
-  final FocusNode focusNode = FocusNode();
   final SearchController mainController;
-  final ValueChanged<int> onCalcelPressed;
+  final ValueChanged<int> onCancelPressed;
 
-  FloatingSheetWithSearchBar({
+  const FloatingSheetWithSearchBar({
     super.key,
     required this.title,
     required this.onDonePressed,
@@ -25,8 +23,17 @@ class FloatingSheetWithSearchBar extends StatelessWidget {
     required this.classModels,
     required this.recomClassModels,
     required this.mainController,
-    required this.onCalcelPressed,
+    required this.onCancelPressed,
   });
+
+  @override
+  State<FloatingSheetWithSearchBar> createState() =>
+      _FloatingSheetWithSearchBarState();
+}
+
+class _FloatingSheetWithSearchBarState
+    extends State<FloatingSheetWithSearchBar> {
+  final FocusNode focusNode = FocusNode();
 
   @override
   Widget build(BuildContext context) {
@@ -55,7 +62,7 @@ class FloatingSheetWithSearchBar extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    title,
+                    widget.title,
                     style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.w600,
@@ -63,7 +70,7 @@ class FloatingSheetWithSearchBar extends StatelessWidget {
                   ),
                   RoundedSmallBtn(
                     title: "Done",
-                    onPressed: onDonePressed,
+                    onPressed: widget.onDonePressed,
                     backgroundColor: Colors.black,
                     textColor: Colors.white,
                   ),
@@ -76,7 +83,7 @@ class FloatingSheetWithSearchBar extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     SearchAnchor(
-                      searchController: mainController,
+                      searchController: widget.mainController,
                       builder:
                           (BuildContext context, SearchController controller) {
                         return SearchBar(
@@ -99,8 +106,7 @@ class FloatingSheetWithSearchBar extends StatelessWidget {
                             EdgeInsets.only(right: 16),
                           ),
                           onChanged: (val) {
-                            onChanged(val, controller);
-                            // 예시: 입력 필드에 포커스를 설정
+                            widget.onChanged(val, controller);
                           },
                           onTap: () {},
                           leading: Container(
@@ -115,30 +121,35 @@ class FloatingSheetWithSearchBar extends StatelessWidget {
                         );
                       },
                       suggestionsBuilder: (context, controller) async {
-                        if (await onChanged(
+                        if (await widget.onChanged(
                             controller.value.text, controller)) {
                           return List<ListTile>.generate(
-                            recomClassModels.length,
+                            widget.recomClassModels.length,
                             (int index) {
                               return ListTile(
-                                title: Text(recomClassModels[index]!.className),
+                                title: Text(
+                                    widget.recomClassModels[index]!.className),
                                 onTap: () {
-                                  controller.closeView(recomClassModels[index]!
-                                      .classCode
+                                  controller.closeView(widget
+                                      .recomClassModels[index]!.classID
                                       .toString());
-
-                                  onSelected(controller.value.text,
-                                      recomClassModels.values.elementAt(index));
+                                  widget.onSelected(
+                                      controller.value.text,
+                                      widget.recomClassModels.values
+                                          .elementAt(index));
                                   controller.clear();
+                                  setState(() {});
                                 },
                               );
                             },
                           );
                         }
                         return List<Widget>.generate(
-                          5,
+                          1,
                           (int index) {
-                            return const BottomCircleProgressBar();
+                            return const LinearProgressIndicator(
+                              color: grey,
+                            );
                           },
                         );
                       },
@@ -147,10 +158,11 @@ class FloatingSheetWithSearchBar extends StatelessWidget {
                       height: 20,
                     ),
                     ScheduleTable(
-                      onCalcelPressed: onCalcelPressed,
+                      onCancelButtonPressed: () => setState(() {}),
+                      onCancelPressed: widget.onCancelPressed,
                       isForTableSearch: true,
-                      sizeOfTuple: classModels.length,
-                      classTable: classModels,
+                      sizeOfTuple: widget.classModels.length,
+                      classTable: widget.classModels,
                     ),
                   ],
                 ),

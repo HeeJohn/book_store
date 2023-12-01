@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:db/common/api/address.dart';
 import 'package:db/common/api/request.dart';
 import 'package:db/common/custom_textform.dart';
@@ -148,7 +150,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
     if ('success' == await sign.reponseMessageCheck(response)) {
       nextPage();
     } else {
-      debugPrint('error sending singup info to the server');
+      setState(() {
+        hasError = true;
+        Timer(const Duration(seconds: 5), () {
+          nextPage();
+        });
+      });
     }
   }
 
@@ -184,9 +191,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 obscureText: signUpList['obscureText']![index],
                 autofocus: true,
                 hintText: signUpList['hintText']![index].toString(),
-                errorText: hasError
-                    ? signUpList['errorText']![index].toString()
-                    : null,
+                errorText: hasError ? "중복된 계정입니다." : null,
                 validator: signUpList['validator']![index],
                 focusNode: focusNode,
                 keyboardType:

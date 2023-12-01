@@ -12,10 +12,12 @@ function request(body, response) {
         result.message = "signUp done";
         result.writeHead(404);
         response.end(JSON.stringify(result));
+        return ;
       } else {
         response.writeHead(200);
         result.message = "signUp done";
         response.end(JSON.stringify(result));
+        return ;
       }
     }
   );

@@ -30,7 +30,8 @@ class ApiService {
     }
   }
 
-  Future<Response?> getRequest(String sessionID, String toUrl) async {
+  Future<Response?> getRequest(
+      String sessionID, String toUrl, dynamic data) async {
     try {
       final Response<dynamic> response = await dio.get(
         ip + toUrl,
@@ -39,6 +40,7 @@ class ApiService {
             "authorization": 'Basic $sessionID',
           },
         ),
+        data: data,
       );
       return response;
     } on DioException catch (e) {
@@ -71,6 +73,8 @@ class ApiService {
           return '!DUPLICATE ACCOUNT!';
         case 'gps saved':
           return 'success';
+        case 'no data':
+          return 'no data';
         default:
           print('=====>>>>> Response body: ${response.data}');
       }

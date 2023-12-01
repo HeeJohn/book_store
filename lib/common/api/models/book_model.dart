@@ -1,56 +1,42 @@
 class BookModel {
   static const List<String> state = ['나쁨', '중간', '좋음'];
   final String bookName, bookPublisher, publishedYear;
-  final int bookPrice;
+  final int bookPrice, classID;
   final String? author, uploadTime;
-  final int classCode;
   final BookState? bookState;
-  final int? bookId;
-  final int? studentId;
-  final int? sumState;
-  BookModel({
-    required this.bookPublisher,
-    required this.publishedYear,
-    required this.classCode,
-    required this.bookPrice,
-    this.bookState,
-    required this.bookName,
-    this.uploadTime,
-    this.author,
-    this.bookId,
-    this.studentId,
-  }) : sumState = 0;
+  final int? bookId, studentID, sumState;
+
   BookModel.fromJson(Map<String, dynamic> json)
       : bookName = json['book_name'],
         bookPublisher = json['publisher'],
         bookPrice = json['price'],
         publishedYear = json['published_year'],
-        classCode = json['class_code'],
+        classID = json['class_id'],
         bookId = json['book_id'],
         author = json['author'],
-        studentId = json['student_id'],
+        studentID = json['student_id'],
         uploadTime = json['upload_time'],
         bookState = BookState(
-          hightlight: state[json['light']],
-          reaped: state[json['pencil']],
-          pencil: state[json['pen']],
-          pen: state[json['dirty']],
-          fade: state[json['fade']],
-          dirty: state[json['ripped']],
+          hightlight: state[json['light'] - 1],
+          ripped: state[json['ripped'] - 1],
+          pencil: state[json['pencil'] - 1],
+          pen: state[json['pen'] - 1],
+          fade: state[json['fade'] - 1],
+          dirty: state[json['dirty'] - 1],
         ),
-        sumState = json['light'] +
+        sumState = (json['light'] +
             json['pencil'] +
             json['pen'] +
             json['dirty'] +
             json['fade'] +
-            json['ripped'];
+            json['ripped']);
 }
 
 class BookState {
-  final String reaped, hightlight, pencil, pen, fade, dirty;
+  final String ripped, hightlight, pencil, pen, fade, dirty;
 
   BookState({
-    required this.reaped,
+    required this.ripped,
     required this.hightlight,
     required this.pencil,
     required this.dirty,

@@ -1,13 +1,11 @@
-
 import 'package:db/activity/common/custom_text.dart';
 import 'package:db/activity/common/round_small_btn.dart';
 import 'package:db/activity/common/state_slider.dart';
 import 'package:db/common/api/models/class_model.dart';
 import 'package:db/common/const/color.dart';
-import 'package:db/home/splash.dart';
 import 'package:flutter/material.dart';
 
-class FloatingSheet extends StatelessWidget {
+class FloatingSheet extends StatefulWidget {
   final String title;
   final String? className;
   final Future<bool> Function(String?, SearchController) onChanged;
@@ -46,6 +44,11 @@ class FloatingSheet extends StatelessWidget {
   });
 
   @override
+  State<FloatingSheet> createState() => _FloatingSheetState();
+}
+
+class _FloatingSheetState extends State<FloatingSheet> {
+  @override
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.only(
@@ -72,7 +75,7 @@ class FloatingSheet extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    title,
+                    widget.title,
                     style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.w600,
@@ -80,7 +83,7 @@ class FloatingSheet extends StatelessWidget {
                   ),
                   RoundedSmallBtn(
                     title: "Done",
-                    onPressed: onDonePressed,
+                    onPressed: widget.onDonePressed,
                     backgroundColor: Colors.black,
                     textColor: Colors.white,
                   ),
@@ -121,7 +124,7 @@ class FloatingSheet extends StatelessWidget {
                           ),
                           onTap: () {},
                           onChanged: (value) {
-                            onChanged(value, controller);
+                            widget.onChanged(value, controller);
                           },
                           leading: Container(
                             color: const Color.fromARGB(255, 223, 223, 223),
@@ -135,28 +138,32 @@ class FloatingSheet extends StatelessWidget {
                         );
                       },
                       suggestionsBuilder: (context, controller) async {
-                        if (await onChanged(
+                        if (await widget.onChanged(
                             controller.value.text, controller)) {
                           return List<ListTile>.generate(
-                            recomClassModels.length,
+                            widget.recomClassModels.length,
                             (int index) {
                               return ListTile(
-                                title: Text(recomClassModels[index]!.className),
+                                title: Text(
+                                    widget.recomClassModels[index]!.className),
                                 onTap: () {
-                                  controller.closeView(recomClassModels[index]!
-                                      .className
+                                  controller.closeView(widget
+                                      .recomClassModels[index]!.className
                                       .toString());
-                                  onTap(controller.value.text,
-                                      recomClassModels[index]!.classCode);
+                                  widget.onTap(controller.value.text,
+                                      widget.recomClassModels[index]!.classID);
+                                  setState(() {});
                                 },
                               );
                             },
                           );
                         }
                         return List<Widget>.generate(
-                          5,
+                          1,
                           (int index) {
-                            return const BottomCircleProgressBar();
+                            return const LinearProgressIndicator(
+                              color: grey,
+                            );
                           },
                         );
                       },
@@ -167,7 +174,7 @@ class FloatingSheet extends StatelessWidget {
                     CustomTextField(
                       enabled: false,
                       label: "수업이름",
-                      hintText: className ?? '',
+                      hintText: widget.className ?? '',
                       textinputType: TextInputType.none,
                     ),
                     const SizedBox(
@@ -176,7 +183,7 @@ class FloatingSheet extends StatelessWidget {
                     CustomTextField(
                       label: "책이름",
                       hintText: "항공우주학개론",
-                      controller: nameController,
+                      controller: widget.nameController,
                       textinputType: TextInputType.name,
                     ),
                     const SizedBox(
@@ -185,7 +192,7 @@ class FloatingSheet extends StatelessWidget {
                     CustomTextField(
                       label: "저자",
                       hintText: "홍길동",
-                      controller: authorController,
+                      controller: widget.authorController,
                       textinputType: TextInputType.name,
                     ),
                     const SizedBox(
@@ -194,7 +201,7 @@ class FloatingSheet extends StatelessWidget {
                     CustomTextField(
                       label: "가격",
                       hintText: "50000",
-                      controller: priceController,
+                      controller: widget.priceController,
                       textinputType: TextInputType.number,
                     ),
                     const SizedBox(
@@ -203,7 +210,7 @@ class FloatingSheet extends StatelessWidget {
                     CustomTextField(
                       label: "출판사",
                       hintText: "한서컴퍼니",
-                      controller: comController,
+                      controller: widget.comController,
                       textinputType: TextInputType.name,
                     ),
                     const SizedBox(
@@ -212,7 +219,7 @@ class FloatingSheet extends StatelessWidget {
                     CustomTextField(
                       enabled: false,
                       label: "출판연도",
-                      hintText: publishedDate ?? "",
+                      hintText: widget.publishedDate ?? "",
                       textinputType: TextInputType.none,
                     ),
                     const SizedBox(
@@ -233,7 +240,10 @@ class FloatingSheet extends StatelessWidget {
                         icon: const Icon(
                           Icons.date_range,
                         ),
-                        onPressed: onDatePressed,
+                        onPressed: () {
+                          widget.onDatePressed();
+                          setState(() {});
+                        },
                       ),
                     ),
                     const SizedBox(
@@ -247,13 +257,14 @@ class FloatingSheet extends StatelessWidget {
                         scrollDirection: Axis.horizontal,
                         child: Row(
                           children: List.generate(
-                            label.length,
+                            widget.label.length,
                             (index) => StateSlider(
                               pollValue: (val) {
                                 print("from bottomSheet : $val");
-                                polledValue[index](val, index);
+                                widget.polledValue[index](val, index);
+                                setState(() {});
                               },
-                              label: label[index],
+                              label: widget.label[index],
                             ),
                           ),
                         ),
@@ -263,7 +274,7 @@ class FloatingSheet extends StatelessWidget {
                       height: 15,
                     ),
                     Text(
-                      '책상태 평균점수: ${(sum / label.length).ceilToDouble()}',
+                      '책상태 평균점수: ${(widget.sum / widget.label.length).ceilToDouble()}',
                       style: const TextStyle(
                         color: grey,
                         fontWeight: FontWeight.w500,

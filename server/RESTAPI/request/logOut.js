@@ -13,6 +13,7 @@ function request(id, body, response) {
       console.log(error);
       console.log(`>> logOut.js >> logOut failed id`);
       response.end(JSON.stringify({ message: "failed to logOut" }));
+      return ;
     } else {
       /* ------ logOut success remove sessionId ------*/
       response.writeHead(200);
@@ -21,6 +22,7 @@ function request(id, body, response) {
           message: "success",
         })
       );
+      return ;
     }
   });
 }

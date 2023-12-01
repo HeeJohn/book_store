@@ -4,8 +4,6 @@ import 'package:db/common/api/address.dart';
 import 'package:db/common/api/models/class_model.dart';
 import 'package:db/common/api/request.dart';
 import 'package:db/common/const/color.dart';
-import 'package:db/common/hive/boxes.dart';
-import 'package:db/common/hive/user.dart';
 import 'package:db/common/local_storage/const.dart';
 import 'package:db/home/splash.dart';
 
@@ -25,40 +23,42 @@ class _SearchScreenState extends State<SearchScreen> {
 
   String? sessionID;
   List<int> tableInfo = [];
-  Map<int, ClassModel> selectClassModels = {};
   Map<int, ClassModel> recomClassModels = {};
   List<ClassModel> classTable = [];
+
   SearchController searchController = SearchController();
 
   Future<List<ClassModel>?> getTableInfo() async {
     ApiService classInfo = ApiService();
     sessionID = await storage.read(key: sessionIDLS);
     if (sessionID != null) {
-      final response = await classInfo.getRequest(sessionID!, myTableURL);
+      final response = await classInfo.getRequest(sessionID!, myTableURL, {});
       if ('success' == await classInfo.reponseMessageCheck(response)) {
         final data = jsonDecode(response!.data)['data'];
-
         classTable.clear();
         for (int i = 0; i < data.length; i++) {
           classTable.add(ClassModel.fromJson(data[i]));
         }
-
         return classTable;
       }
     }
-    return null;
+    return [];
   }
 
   void getStudentInfo() async {
-    name = '백효영';
-    id = 201901366;
+    final personInfo = ApiService();
+    name = '';
+    id = 0;
     sessionID = await storage.read(key: sessionIDLS);
-    if (sessionID == null) {
-      final box = Boxes.getUserData();
-      UserData? student = box.get(sessionID);
-      if (student != null) {
-        name = student.studentName;
-        id = student.studentID;
+    if (sessionID != null) {
+      final response =
+          await personInfo.getRequest(sessionID!, personInfoURL, {});
+      if ('success' == await personInfo.reponseMessageCheck(response)) {
+        final data = jsonDecode(response!.data)['data'];
+        setState(() {
+          name = data['name'];
+          id = data['student_id'];
+        });
       }
     }
   }
@@ -69,17 +69,39 @@ class _SearchScreenState extends State<SearchScreen> {
     super.initState();
   }
 
-  void onCalcelPressed(index) {
+  void onCancelPressed(int classID) async {
+    print('--------------');
+    print(classID);
+    ApiService classInfo = ApiService();
+    sessionID = await storage.read(key: sessionIDLS);
+    if (sessionID != null) {
+      final response = await classInfo.postRequest(
+        sessionID!,
+        delMyTableURL,
+        {'classID': classID},
+      );
+      if ('success' == await classInfo.reponseMessageCheck(response)) {
+        setState(() {
+          classTable.removeWhere((element) => element.classID == classID);
+          tableInfo.removeWhere((element) => element == classID);
+        });
+      }
+    }
     setState(() {});
   }
 
   void onDonePressed() async {
     ApiService addTable = ApiService();
+    for (int i = 0; i < tableInfo.length; i++) {
+      print('table info------------> $i');
+    }
     if (sessionID != null) {
       final response = await addTable
-          .postRequest(sessionID!, tableAddURL, {'class_code': tableInfo});
+          .postRequest(sessionID!, tableAddURL, {'class_id': tableInfo});
       if ('success' == await addTable.reponseMessageCheck(response)) {
         setState(() {
+          classTable.clear();
+          tableInfo.clear();
           Navigator.of(context).pop();
         });
       }
@@ -89,7 +111,7 @@ class _SearchScreenState extends State<SearchScreen> {
   Future<bool> onSearchChanged(String? val, SearchController controller) async {
     print(val);
     print("======================================================");
-    recomClassModels.clear();
+
     ApiService classInfo = ApiService();
     if (sessionID != null) {
       dynamic response = await classInfo
@@ -102,14 +124,12 @@ class _SearchScreenState extends State<SearchScreen> {
           if (size != 0) {
             print(received['data'][0]);
           }
+          recomClassModels.clear();
           for (int i = 0; i < size; i++) {
             recomClassModels.putIfAbsent(
                 i, () => ClassModel.fromJson(received['data'][i]));
           }
-
-          if (!controller.isOpen) {
-            controller.openView();
-          }
+          if (!controller.isOpen) controller.openView();
           return true;
         }
       }
@@ -121,16 +141,18 @@ class _SearchScreenState extends State<SearchScreen> {
     print(val);
     setState(() {
       if (!tableInfo.contains(int.parse(val))) {
+        print('=============================== in');
         tableInfo.add(int.parse(val));
         classTable.add(classModel);
       }
+      print('=============================== out');
     });
   }
 
   void onLogOutPressed() async {
     if (sessionID != null) {
       final logOut = ApiService();
-      final response = await logOut.getRequest(sessionID!, logOutURL);
+      final response = await logOut.getRequest(sessionID!, logOutURL, {});
       if ('success' == await logOut.reponseMessageCheck(response)) {
         await storage.deleteAll();
       }
@@ -226,7 +248,7 @@ class _SearchScreenState extends State<SearchScreen> {
                                 title: const Text('로그아웃'),
                                 content: const Text('로그아웃을 하시겠습니까?'),
                                 actions: <Widget>[
-                                  TextButton(
+                                  ElevatedButton(
                                     onPressed: () {
                                       onLogOutPressed();
                                       Navigator.of(context)
@@ -234,9 +256,9 @@ class _SearchScreenState extends State<SearchScreen> {
                                     },
                                     child: const Text('예'),
                                   ),
-                                  TextButton(
+                                  ElevatedButton(
                                     onPressed: () {
-                                      Navigator.of(context).pop();
+                                      Navigator.of(context).pop(false);
                                     },
                                     child: const Text('아니오'),
                                   ),
@@ -308,7 +330,7 @@ class _SearchScreenState extends State<SearchScreen> {
                               context: context,
                               builder: (BuildContext context) {
                                 return FloatingSheetWithSearchBar(
-                                  onCalcelPressed: onCalcelPressed,
+                                  onCancelPressed: onCancelPressed,
                                   mainController: searchController,
                                   classModels: classTable,
                                   recomClassModels: recomClassModels,
@@ -333,29 +355,32 @@ class _SearchScreenState extends State<SearchScreen> {
                       );
                     }
                     return GestureDetector(
-                      onTap: () => showModalBottomSheet(
-                        isScrollControlled: true,
-                        context: context,
-                        builder: (BuildContext context) {
-                          return FloatingSheetWithSearchBar(
-                            onCalcelPressed: onCalcelPressed,
-                            mainController: searchController,
-                            classModels: classTable,
-                            recomClassModels: recomClassModels,
-                            title: "시간표를 등록하세요",
-                            onDonePressed: onDonePressed,
-                            onChanged: onSearchChanged,
-                            onSelected: onSearchSelected,
-                          );
-                        },
-                        shape: const RoundedRectangleBorder(
-                          borderRadius: BorderRadius.vertical(
-                            top: Radius.circular(30),
+                      onTap: () {
+                        showModalBottomSheet(
+                          isScrollControlled: true,
+                          context: context,
+                          builder: (BuildContext context) {
+                            return FloatingSheetWithSearchBar(
+                              onCancelPressed: onCancelPressed,
+                              mainController: searchController,
+                              classModels: classTable,
+                              recomClassModels: recomClassModels,
+                              title: "시간표를 등록하세요",
+                              onDonePressed: onDonePressed,
+                              onChanged: onSearchChanged,
+                              onSelected: onSearchSelected,
+                            );
+                          },
+                          shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.vertical(
+                              top: Radius.circular(30),
+                            ),
                           ),
-                        ),
-                      ),
+                        );
+                      },
                       child: ScheduleTable(
-                        onCalcelPressed: onCalcelPressed,
+                        onCancelButtonPressed: () => setState(() {}),
+                        onCancelPressed: onCancelPressed,
                         isForTableSearch: false,
                         classTable: snapshot.data!,
                         sizeOfTuple: sizeOfTuple,
@@ -376,14 +401,15 @@ class ScheduleTable extends StatelessWidget {
   final List<ClassModel> classTable;
   final int sizeOfTuple;
   final bool isForTableSearch;
-  final ValueChanged<int> onCalcelPressed;
-
+  final ValueChanged<int> onCancelPressed;
+  final VoidCallback onCancelButtonPressed;
   const ScheduleTable({
     super.key,
+    required this.onCancelButtonPressed,
     required this.sizeOfTuple,
     required this.classTable,
     required this.isForTableSearch,
-    required this.onCalcelPressed,
+    required this.onCancelPressed,
   });
 
   @override
@@ -453,7 +479,7 @@ class ScheduleTable extends StatelessWidget {
                   padding: const EdgeInsets.all(8),
                   child: IconButton(
                     onPressed: () => showBook(
-                      classTable[index].classCode,
+                      classTable[index].classID,
                     ),
                     icon: const Icon(
                       Icons.image_search_rounded,
@@ -468,8 +494,10 @@ class ScheduleTable extends StatelessWidget {
                   alignment: Alignment.center,
                   padding: const EdgeInsets.all(8),
                   child: IconButton(
-                    onPressed: () =>
-                        onCalcelPressed(classTable[index].classCode),
+                    onPressed: () {
+                      onCancelButtonPressed();
+                      onCancelPressed(classTable[index].classID);
+                    },
                     icon: const Icon(
                       Icons.cancel_presentation_outlined,
                       color: Colors.red,

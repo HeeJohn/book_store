@@ -5,43 +5,46 @@ function request(id, body, response) {
   //parse
   //----> sql
   let targetTable = "class_table";
-  const student_id = "student_id";
-  let guide = ``+student_id;
-  let values = `${id}`;
-  let param = body.class_code;
-  console.log(param);
-  for (let i = 0; i < param.length; i++) {
-    guide += `,class${i + 1}_id`;
-    values += ",?";
-  }
-  let sql = `INSERT INTO ${targetTable}(${guide}) VALUES(${values})`;
+  let param = [];
+  let sql = `INSERT INTO ${targetTable}(student_id, class_id) VALUES(${id}, ?);`;
+  let classIDs = body.class_id;
+  console.log(classIDs);
+  console.log(classIDs.length);
+  for(let  i =0 ;i< classIDs.length ; i++){
+  param = classIDs[i];
   console.log(sql);
   console.log(param);
   db.query(sql, param, function (error, result) {
-    if (error.code == "ER_DUP_ENTRY") {
-    guide = guide.substring(student_id.length+1)
-    guide =  guide.replaceAll('id' ,'id=?');
-    console.log(guide);
-      sql = `UPDATE ${targetTable} SET ${guide} WHERE STUDENT_ID = ${id};`;
-      console.log(sql);
-      db.query(sql, param, function (udpateError, result) {
-        if(udpateError){
-          response.end(
-            JSON.stringify({
-              message: "updating classTable info into class table failed."
-            }));
-        }
-      
-        console.log(`>> tableAdd.js >> updated`);
-        result.message = "success";
-     
-        response.end(JSON.stringify({"message" : "success"}));
-      });
+    if (error) {
+      console.log(`>> tableAdd.js >> error : ${error}`);
+      switch (error.code) {
+        case "ER_DUP_ENTRY":
+          sql = `UPDATE ${targetTable} SET class_id = ? WHERE STUDENT_ID = ${id};`;
+          console.log(sql);
+          db.query(sql, param, function (udpateError, result) {
+            if (udpateError) {
+              console.log(`>> tableAdd.js >> updated`);
+              response.end(
+                JSON.stringify({
+                  message: "updating classTable info into class table failed."
+                }));
+              return;
+            } else {
+              console.log(`>> tableAdd.js >> updated`);
+              response.end(JSON.stringify({ "message": "success" }));
+              return;
+            }
+          });
+          console.log(`>> tableAdd.js >> unexpected error`);
+          return ;
+      }
     } else {
       console.log(`>> tableAdd.js >> updated`);
       result.message = "success";
-      response.end(JSON.stringify({"message" : "sucess"}));
+      response.end(JSON.stringify({ "message": "success" }));
+      return;
     }
   });
+}
 }
 module.exports = { request };

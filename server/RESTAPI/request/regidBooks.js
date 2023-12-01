@@ -5,17 +5,22 @@ function request(id, body, response) {
 
   //----> sql
   let targetTable = "book";
-  let joinTable = "status";
+  let joinTable1 = "status";
+  let joinTable2 = "register_book";
   let commonColumn = "book_id";
-
+  if(body.how =='book_id'){
+    body.how = `${joinTable1}.light+${joinTable1}.pencil+${joinTable1}.pen+${joinTable1}.dirty+${joinTable1}.fade+${joinTable1}.book_id+status.ripped`;
+  }
   let sql = `
-    SELECT *
+    SELECT * 
     FROM ${targetTable}
-    JOIN ${joinTable} ON ${targetTable}.${commonColumn} = ${joinTable}.${commonColumn}
-    WHERE ${targetTable}.STUDENT_ID = ?
+    JOIN ${joinTable1} ON ${targetTable}.${commonColumn} = ${joinTable1}.${commonColumn}
+    JOIN ${joinTable2} ON ${targetTable}.${commonColumn} = ${joinTable2}.${commonColumn}
+    WHERE ${joinTable2}.STUDENT_ID = ?
+    ORDER BY ? DESC;
   `;
 
-  let param = [id];
+  let param = [id,body.how];
 
   db.query(
     sql, param,
@@ -23,10 +28,13 @@ function request(id, body, response) {
       if (error) {
         console.log("Error ---> book:", error);
         response.end(JSON.stringify(null));
+        return ;
       } else {
         response.writeHead(200);
-        console.log(result[0]);
+        console.log(result.length);
+        console.log(result);
         response.end(JSON.stringify({'message':'success', 'data':result})); 
+        return ;
       }
     }
   );

@@ -9,7 +9,7 @@ function request(id, body, response) {
 
   let targetTable = "book";
   let sql = `INSERT INTO ${targetTable} 
-  (book_name, price, publisher, published_year, author, class_code, student_id, upload_time) 
+  (book_name, price, publisher, published_year, author, class_id, student_id, upload_time) 
   VALUES(?, ?, ?, ?, ?, ?, ?, ?)`;
   let param = [
     body.name,
@@ -17,7 +17,7 @@ function request(id, body, response) {
     body.publisher,
     body.bookPublishedDate,
     body.author,
-    body.classCode,
+    body.classID,
     id,
     body.upload_time,
   ];
@@ -41,6 +41,7 @@ function request(id, body, response) {
           if (error) {
             console.log("Error selecting book_id:", error);
             response.end(JSON.stringify("Select_book_id_fail"));
+            return ;
           }
           console.log(bookResult[bookResult.length - 1].book_id);
           let bookID = bookResult[bookResult.length - 1].book_id;
@@ -60,12 +61,16 @@ function request(id, body, response) {
             sql, param,
             function (error, statusResult) {
               if (error) {
+                console.log(error);
+                console.log(error.code);
                 console.log("Error inserting into status:", error);
                 response.end(JSON.stringify("Insert_statusdata_fail"));
+                return ;
               } else {
                 console.log("Inserted into status successfully");
                 response.writeHead(200);
                 response.end(JSON.stringify({'message':'success'})); // status 테이블에 [상태 정보]가 잘 들어갔는 지.
+                return ;
               }
             });
         });

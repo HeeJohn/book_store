@@ -3,36 +3,28 @@ const db = require('../../mysql.js');
 function request(id, body, response) {
   console.log(`>> myTable.js >> data :  ${body}`);
   //----> sql
-  let targetTable = 'class_table';
-  let sql = `SELECT * FROM ${targetTable} WHERE STUDENT_ID = ?;`;
+  let targetTable = 'class';
+  let subTable = 'class_table';
+  let condition = 'class_id';
+  let sql = `SELECT * FROM ${targetTable} 
+             WHERE ${condition} in (SELECT ${condition} 
+                                  FROM ${subTable} 
+                                  WHERE STUDENT_ID = ?);`;
   let param = [id];
-  db.query(sql, param, function (error, classCodes) {
+  console.log(sql);
+  db.query(sql, param, function (error, classIDs) {
     if (error) {
-      throw error;
+      console.log(error);
+      console.log(error.code);
       response.end(JSON.stringify({ 'message': 'failed to bring class_codes' }));
+      return;
     } else {
-      let classIds = [];
-      for (let i = 1; i <= 10; i++) {
-        let classId = classCodes[0][`class${i}_id`];
-        if (classId !== null) {
-          classIds.push(classId);
-        }
+      if (classIDs.length === 0 || classIDs[0] === undefined) {
+        response.end(JSON.stringify({ 'message': 'no data' }));
+        return;
       }
-
-      console.log(`>> myTable.js >> classIds :  ${classIds}` );
-      targetTable = 'class';
-      sql = `SELECT * FROM ${targetTable} WHERE class_id IN (?);`;
-      db.query(sql, [classIds], function (error, result) {
-        if (error) {
-          result.message = "getting class info from mytable failed.";
-          result.writeHead(404);
-          response.end(JSON.stringify(result));
-        } else {
-          response.writeHead(200);
-          result.message = "success";
-          response.end(JSON.stringify({'message': 'success', 'data' : result}));
-        }
-      });
+      response.end(JSON.stringify({ 'message': 'success', 'data': classIDs }));
+      return;
     }
   });
 }

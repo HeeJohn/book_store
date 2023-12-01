@@ -63,7 +63,7 @@ class _SplashScreenState extends State<SplashScreen> {
   Future<String> login(String authInfo) async {
     final login = ApiService();
 
-    final response = await login.getRequest(authInfo, splashURL);
+    final response = await login.getRequest(authInfo, splashURL, null);
     if (response != null) {
       saveUserInfo(jsonDecode(response.data)['loggedUser']);
     }

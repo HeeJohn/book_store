@@ -111,6 +111,11 @@ class _LogInScreenState extends State<LogInScreen> {
           key: sessionIDLS, value: receivedData['session_id'].toString());
       //  saveUserInfo(jsonDecode(response.data)['loggedUser']);
       nextPage(bottomBar);
+    } else {
+      setState(() {
+        hasError = true;
+        errorText = '잘못된 아이디 혹은 비밀번호';
+      });
     }
   }
 

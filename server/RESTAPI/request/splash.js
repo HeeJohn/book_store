@@ -12,6 +12,7 @@ function request(body, response) {
         console.log(error);
         result.writeHead(404);
         response.end(JSON.stringify({"message": "failed to login"}));
+        return ;
       } else { /* ------ login success get insert session -------- */
 
         //----> sql
@@ -24,6 +25,7 @@ function request(body, response) {
               console.log(error);
               result.writeHead(404);
               response.end(JSON.stringify({"message": "failed to create session"}));
+              return ;
             } else { /* ------ session id created successfully -------- */
             
             //----> sql
@@ -36,9 +38,11 @@ function request(body, response) {
                     console.log(error);
                     result.writeHead(404);
                     response.end(JSON.stringify({"message": "failed to get created session"}));
+                    return ;
                   } else {
                     response.writeHead(200);
                     response.end(JSON.stringify(result));
+                    return ;
                   }
                 }
               );
