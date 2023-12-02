@@ -351,12 +351,16 @@ class _CustomGoogleMap extends StatelessWidget {
       markers: Set.from(markers),
       onMapCreated: onMapCreated,
       onTap: (LatLng latLng) {
-        markers[0] = Marker(
-          markerId: const MarkerId('meet here'),
-          position: latLng,
-        );
-        getMarkersPostion(latLng);
-        (context as Element).markNeedsBuild();
+        try {
+          markers[0] = Marker(
+            markerId: const MarkerId('meet here'),
+            position: latLng,
+          );
+          getMarkersPostion(latLng);
+          (context as Element).markNeedsBuild();
+        } catch (e) {
+          print(e);
+        }
       },
     );
   }
