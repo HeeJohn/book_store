@@ -1,4 +1,4 @@
-const db = require("../../mysql.js");
+const db = require("../../../mysql.js");
 
 function request(id, body, response) {
     console.log(`>> notify.js >> data :  ${body}`);
@@ -8,7 +8,9 @@ function request(id, body, response) {
     let param = [];
 
     let sql = `INSERT INTO ${targetTable}(buyer_id, seller_id, book_id) VALUES(?, ?, ?);`;
-    param = [id, body.seller_id, body.book_id];
+    console.log(body.bookID);
+    
+    param = [id, body.sellerID, body.bookID];
     console.log(sql);
     console.log(param);
     db.query(sql, param, function (error, result) {

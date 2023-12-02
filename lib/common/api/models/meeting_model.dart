@@ -8,7 +8,7 @@ class MeetingModel {
       author,
       publisher,
       publishedYear;
-  final int price, bookID;
+  final int price, bookID, sellerID, buyerID;
 
   MeetingModel.fromJson(Map<String, dynamic> json)
       : buyer = json['buyer'],
@@ -21,5 +21,7 @@ class MeetingModel {
         publisher = json['publisher'],
         publishedYear = json['published_year'],
         price = json['price'],
-        bookID = json['book_id'];
+        bookID = json['book_id'],
+        sellerID = json['seller_id'],
+        buyerID = json['buyer_id'];
 }

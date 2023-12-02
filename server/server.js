@@ -10,7 +10,7 @@ const app = http.createServer(function (request, response) {
   let requestData = "";
   const headers = request.headers["authorization"];
   console.log(">> server.js >> Headers:", headers);
-  const sessionID = headers.substring("Basic".length+1).trim();
+  const sessionID = headers.substring("Basic ".length).trim();
   console.log(`>> server.js >> ${sessionID}`);
 
     request.on("data", function (stream) {

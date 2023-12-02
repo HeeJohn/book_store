@@ -1,4 +1,4 @@
-const db = require("../../mysql.js");
+const db = require("../../../mysql.js");
 
 function request(id, body, response) {
   console.log(`>> tableAdd.js >> data :  ${body}`);

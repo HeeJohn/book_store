@@ -1,10 +1,13 @@
 import 'dart:convert';
 import 'package:db/activity/common/bottom_sheet_with_search.dart';
+import 'package:db/activity/common/registered_book.dart';
 import 'package:db/common/api/address.dart';
+import 'package:db/common/api/models/book_model.dart';
 import 'package:db/common/api/models/class_model.dart';
 import 'package:db/common/api/request.dart';
 import 'package:db/common/const/color.dart';
 import 'package:db/common/local_storage/const.dart';
+import 'package:db/home/common/layout.dart';
 import 'package:db/home/splash.dart';
 
 import 'package:flutter/material.dart';
@@ -18,12 +21,14 @@ class SearchScreen extends StatefulWidget {
 
 class _SearchScreenState extends State<SearchScreen> {
   String? name;
-  int? id;
+  int? id = 0;
   final int sizeOfTuple = 5; // temp
 
   String? sessionID;
   List<int> tableInfo = [];
   Map<int, ClassModel> recomClassModels = {};
+  Map<int, BookModel> recomBookModels = {};
+  Map<int, BookState> recomBookStatusModels = {};
   List<ClassModel> classTable = [];
 
   SearchController searchController = SearchController();
@@ -48,7 +53,6 @@ class _SearchScreenState extends State<SearchScreen> {
   void getStudentInfo() async {
     final personInfo = ApiService();
     name = '';
-    id = 0;
     sessionID = await storage.read(key: sessionIDLS);
     if (sessionID != null) {
       final response =
@@ -88,6 +92,34 @@ class _SearchScreenState extends State<SearchScreen> {
       }
     }
     setState(() {});
+  }
+
+  Future<bool> onSearchBookChanged(
+      String? val, SearchController controller) async {
+    recomClassModels.clear();
+    ApiService classInfo = ApiService();
+    if (sessionID != null) {
+      dynamic response = await classInfo
+          .postRequest(sessionID!, tableSearchURL, {'text': val});
+      if ('success' == await classInfo.reponseMessageCheck(response)) {
+        dynamic received = await jsonDecode(response!.data);
+        if (await received['data'] != null) {
+          int size = await received['data'].length;
+          if (size != 0) {
+            print(received['data'][0]);
+            for (int i = 0; i < size; i++) {
+              recomClassModels.putIfAbsent(
+                  i, () => ClassModel.fromJson(received['data'][i]));
+            }
+          }
+          if (!controller.isOpen) {
+            controller.openView();
+          }
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   void onDonePressed() async {
@@ -414,8 +446,15 @@ class ScheduleTable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    void showBook(bookCode) {
-      Navigator.of(context).pushNamed(bookScreen);
+    void showBook(int classID) {
+      print(classID);
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => Book(
+            classID: classID,
+          ),
+        ),
+      );
     }
 
     return Table(
@@ -478,9 +517,7 @@ class ScheduleTable extends StatelessWidget {
                   alignment: Alignment.center,
                   padding: const EdgeInsets.all(8),
                   child: IconButton(
-                    onPressed: () => showBook(
-                      classTable[index].classID,
-                    ),
+                    onPressed: () => showBook(classTable[index].classID),
                     icon: const Icon(
                       Icons.image_search_rounded,
                     ),
@@ -508,6 +545,235 @@ class ScheduleTable extends StatelessWidget {
           );
         },
       ),
+    );
+  }
+}
+
+class Book extends StatefulWidget {
+  final int classID;
+  const Book({
+    required this.classID,
+    super.key,
+  });
+
+  @override
+  State<Book> createState() => _BookState();
+}
+
+class _BookState extends State<Book> {
+  List<BookModel> registeredBooks = [];
+  List<BookState> registeredBooksState = [];
+  bool latestButton = false;
+  bool stateButton = false;
+  bool priceButton = false;
+  String how = 'price', order = 'ASC';
+
+  void onSortPressed(String how, bool order) async {
+    switch (how) {
+      case 'price':
+        how = 'price';
+        break;
+      case 'status':
+        how = 'book_id';
+        break;
+      case 'latest':
+        how = 'upload_time';
+        break;
+      default:
+        how = 'price';
+    }
+    this.how = how;
+    this.order = order ? 'ASC' : 'DESC';
+    getBookInfo(this.how, this.order);
+  }
+
+  Future<List<RegisterdBook>?> getBookInfo(String how, String order) async {
+    ApiService searchBook = ApiService();
+    var sessionID = await storage.read(key: sessionIDLS);
+    if (sessionID != null) {
+      final response = await searchBook.getRequest(sessionID, searchBooksURL, {
+        'how': how,
+        'order': order,
+        'classID': widget.classID,
+      });
+      if ('success' == await searchBook.reponseMessageCheck(response)) {
+        final books = jsonDecode(response!.data)['data'];
+        registeredBooks.clear();
+        try {
+          for (int i = 0; i < books.length; i++) {
+            registeredBooks.add(BookModel.fromJson(books[i]));
+            registeredBooksState.add(BookState.fromJson(books[i]));
+          }
+        } catch (e) {
+          print(e);
+        }
+
+        return registeredBooks
+            .map((e) => RegisterdBook(
+                  name: e.bookName,
+                  uploadTime: e.uploadTime!,
+                  onTap: () {},
+                  price: e.bookPrice,
+                ))
+            .toList();
+      }
+    }
+    return null;
+  }
+
+  void notify(int sellerID, int bookID) async {
+    print('===========');
+    print(sellerID);
+    print(bookID);
+    print('===========');
+    ApiService notify = ApiService();
+    var sessionID = await storage.read(key: sessionIDLS);
+    if (sessionID != null) {
+      final response = await notify.postRequest(
+        sessionID,
+        notifyURL,
+        {'sellerID': sellerID, 'bookID': bookID},
+      );
+      if ('success' == await notify.reponseMessageCheck(response)) {
+        pop();
+      }
+    }
+  }
+
+  void pop() {
+    Navigator.of(context).pop();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MainLayout(
+      children: [
+        const SizedBox(
+          height: 20,
+        ),
+        const Text(
+          "검색된 책",
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            ElevatedButton(
+              style: ButtonStyle(
+                  backgroundColor: MaterialStateProperty.all(
+                latestButton ? (Colors.grey) : Colors.purple[100],
+              )),
+              onPressed: () => {
+                onSortPressed('latest', latestButton),
+                latestButton = !latestButton,
+                setState(() {}),
+              },
+              child: const Text('최신순'),
+            ),
+            ElevatedButton(
+              style: ButtonStyle(
+                  backgroundColor: MaterialStateProperty.all(
+                priceButton ? (Colors.grey) : Colors.purple[100],
+              )),
+              onPressed: () => {
+                onSortPressed('price', priceButton),
+                priceButton = !priceButton,
+                setState(() {}),
+              },
+              child: const Text('가격순'),
+            ),
+            ElevatedButton(
+              style: ButtonStyle(
+                  backgroundColor: MaterialStateProperty.all(
+                stateButton ? (Colors.grey) : Colors.purple[100],
+              )),
+              onPressed: () => {
+                onSortPressed('status', stateButton),
+                stateButton = !stateButton,
+                setState(() {}),
+              },
+              child: const Text('상태순'),
+            ),
+          ],
+        ),
+        Expanded(
+          child: FutureBuilder<List<RegisterdBook>?>(
+            future: getBookInfo(how, order),
+            builder: (context, snapshot) {
+              print(snapshot.data);
+              if (!snapshot.hasData) {
+                return const BottomCircleProgressBar();
+              }
+              if (snapshot.data!.isEmpty) {
+                return Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text(
+                      '등록된 책이 없습니다.',
+                      style: TextStyle(
+                        fontSize: 20,
+                      ),
+                    ),
+                    SizedBox(
+                      width: MediaQuery.of(context).size.width / 2,
+                      child: Image.asset(
+                        'asset/img/writing.png',
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+                  ],
+                );
+              }
+
+              return ListView.builder(
+                scrollDirection: Axis.vertical,
+                itemCount: snapshot.data!.length,
+                itemBuilder: (context, index) {
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      snapshot.data![index],
+                      IconButton(
+                        iconSize: MediaQuery.of(context).size.width / 7,
+                        onPressed: () => showDialog(
+                            context: context,
+                            builder: (context) {
+                              return AlertDialog(
+                                title: const Text('구매 요청'),
+                                content: Text(
+                                    '"${snapshot.data![index].name}" 책구매를 요청하시겠습니까?'),
+                                actions: <Widget>[
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                    },
+                                    child: const Text('NO'),
+                                  ),
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      notify(registeredBooks[index].studentID!,
+                                          registeredBooks[index].bookId!);
+                                      Navigator.of(context).pop();
+                                    },
+                                    child: const Text('YES'),
+                                  ),
+                                ],
+                              );
+                            }),
+                        icon: const Icon(
+                          Icons.request_quote,
+                          color: Colors.blue,
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 }

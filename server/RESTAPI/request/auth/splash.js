@@ -1,4 +1,4 @@
-const db = require("../../mysql.js");
+const db = require("../../../mysql.js");
 
 function request(body, response) {
   console.log(`>> splash.js >> data :  ${body}`);

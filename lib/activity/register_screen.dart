@@ -36,7 +36,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
   late DateTime today;
   late String? sessionID;
   List<BookModel> registeredBooks = [];
-  void onBookTap(BookModel e) {}
+  List<BookState> registeredBooksState = [];
+  bool latestButton = false;
+  bool stateButton = false;
+  bool priceButton = false;
+  String how = 'price', order = 'ASC';
 
   void onDonePressed() async {
     if (bookPublishDate != null && classID != null) {
@@ -76,7 +80,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     });
   }
 
-  void onSortPressed(String how) async {
+  void onSortPressed(String how, bool order) async {
     switch (how) {
       case 'price':
         how = 'price';
@@ -88,9 +92,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
         how = 'upload_time';
         break;
       default:
-        how = '';
+        how = 'price';
     }
-    getBookInfo(how);
+    this.how = how;
+    this.order = order ? 'ASC' : 'DESC';
+    getBookInfo(this.how, this.order);
   }
 
   Future<bool> onSearchChanged(String? val, SearchController controller) async {
@@ -176,24 +182,26 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  Future<List<RegisterdBook>?> getBookInfo(String how) async {
+  Future<List<RegisterdBook>?> getBookInfo(String how, String order) async {
+    print(how);
+    print(order);
     ApiService regidBook = ApiService();
     sessionID = await storage.read(key: sessionIDLS);
     if (sessionID != null) {
-      final response =
-          await regidBook.getRequest(sessionID!, regidBooksURL, {'how': how});
+      final response = await regidBook
+          .getRequest(sessionID!, regidBooksURL, {'how': how, 'order': order});
       if ('success' == await regidBook.reponseMessageCheck(response)) {
-        final books = await jsonDecode(response!.data)['data'];
-        print(books);
-        print(books.length);
+        final books = jsonDecode(response!.data)['data'];
         registeredBooks.clear();
-        print('before');
-        for (int i = 0; i < books.length; i++) {
-          print(books[i]);
-          registeredBooks[i] = BookModel.fromJson(books[i]);
+        try {
+          for (int i = 0; i < books.length; i++) {
+            registeredBooks.add(BookModel.fromJson(books[i]));
+            registeredBooksState.add(BookState.fromJson(books[i]));
+          }
+        } catch (e) {
+          print(e);
         }
-        print('after');
-        print(registeredBooks.length);
+
         return registeredBooks
             .map((e) => RegisterdBook(
                   name: e.bookName,
@@ -207,11 +215,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return null;
   }
 
+  void onBookTap(BookModel e) {}
+
   void _onDismissed(int bookID) async {
     ApiService removeBook = ApiService();
     sessionID = await storage.read(key: sessionIDLS);
     if (sessionID != null) {
-      print(bookID);
       final response = await removeBook.postRequest(
         sessionID!,
         removeBookURL,
@@ -282,22 +291,46 @@ class _RegisterScreenState extends State<RegisterScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             ElevatedButton(
-              onPressed: () => onSortPressed('latest'),
+              style: ButtonStyle(
+                  backgroundColor: MaterialStateProperty.all(
+                latestButton ? (Colors.grey) : Colors.purple[100],
+              )),
+              onPressed: () => {
+                onSortPressed('latest', latestButton),
+                latestButton = !latestButton,
+                setState(() {}),
+              },
               child: const Text('최신순'),
             ),
             ElevatedButton(
-              onPressed: () => onSortPressed('price'),
+              style: ButtonStyle(
+                  backgroundColor: MaterialStateProperty.all(
+                priceButton ? (Colors.grey) : Colors.purple[100],
+              )),
+              onPressed: () => {
+                onSortPressed('price', priceButton),
+                priceButton = !priceButton,
+                setState(() {}),
+              },
               child: const Text('가격순'),
             ),
             ElevatedButton(
-              onPressed: () => onSortPressed('status'),
+              style: ButtonStyle(
+                  backgroundColor: MaterialStateProperty.all(
+                stateButton ? (Colors.grey) : Colors.purple[100],
+              )),
+              onPressed: () => {
+                onSortPressed('status', stateButton),
+                stateButton = !stateButton,
+                setState(() {}),
+              },
               child: const Text('상태순'),
             ),
           ],
         ),
         Expanded(
           child: FutureBuilder<List<RegisterdBook>?>(
-            future: getBookInfo(''),
+            future: getBookInfo(how, order),
             builder: (context, snapshot) {
               print(snapshot.data);
               if (!snapshot.hasData) {
@@ -364,11 +397,3 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 }
-
-
-      // physics: const NeverScrollableScrollPhysics(),
-      //           shrinkWrap: true,
-      //           itemCount: snapshot.data!.length,
-      //           itemBuilder: (BuildContext context, int index) {
-      //             return snapshot.data![index];
-      //           },

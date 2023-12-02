@@ -1,4 +1,4 @@
-const db = require("../../mysql.js");
+const db = require("../../../mysql.js");
 
 function request(id, body, response) {
   console.log(`>> addBook.js >> id :  ${id}`)
@@ -9,7 +9,7 @@ function request(id, body, response) {
 
   let targetTable = "book";
   let sql = `INSERT INTO ${targetTable} 
-  (book_name, price, publisher, published_year, author, class_id, student_id, upload_time) 
+  (book_name, price, publisher, published_year, author, class_id, upload_time ,student_id) 
   VALUES(?, ?, ?, ?, ?, ?, ?, ?)`;
   let param = [
     body.name,
@@ -18,8 +18,8 @@ function request(id, body, response) {
     body.bookPublishedDate,
     body.author,
     body.classID,
-    id,
     body.upload_time,
+    id
   ];
   console.log(`>> addBook.js >> param :  `);
   console.log(param);
@@ -34,7 +34,9 @@ function request(id, body, response) {
       } else {
         console.log("Inserted into book successfully");
         targetTable = "book";
-        sql = `SELECT book_id FROM ${targetTable} WHERE student_id = ?`;
+        sql = `SELECT book.book_id 
+               FROM ${targetTable}  
+               WHERE student_id = ?`;
         param = [id];
         console.log(sql);
         db.query(sql, param, function (error, bookResult) {

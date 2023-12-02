@@ -23,9 +23,16 @@ class _NotificationScreenState extends State<NotificationScreen> {
     ApiService toMeeUpList = ApiService();
     final sessionID = await storage.read(key: sessionIDLS);
     if (sessionID != null) {
-      final response = await toMeeUpList.getRequest(sessionID, notBoxURL, {});
+      final response = await toMeeUpList.getRequest(
+        sessionID,
+        updateNotBoxURL,
+        {
+          'bookID': meetingModel.bookID,
+          'flag': 1,
+        },
+      );
       if ('success' == await toMeeUpList.reponseMessageCheck(response)) {
-        final data = jsonDecode(response!.data)['data'];
+        setState(() {});
       }
     }
   }
@@ -36,7 +43,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
     if (sessionID != null) {
       final response = await delNotBox.postRequest(
         sessionID,
-        notBoxURL,
+        delNotBoxURL,
         {'bookID': meetingModel.bookID},
       );
       if ('success' == await delNotBox.reponseMessageCheck(response)) {
@@ -49,7 +56,11 @@ class _NotificationScreenState extends State<NotificationScreen> {
     ApiService notification = ApiService();
     final sessionID = await storage.read(key: sessionIDLS);
     if (sessionID != null) {
-      final response = await notification.getRequest(sessionID, notBoxURL, {});
+      final response = await notification.getRequest(
+        sessionID,
+        notBoxURL,
+        {'flag': 0},
+      );
       if ('success' == await notification.reponseMessageCheck(response)) {
         final data = jsonDecode(response!.data)['data'];
         print(data.length);
@@ -75,44 +86,52 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return MainLayout(
-      children: [
-        const SizedBox(
-          height: 20,
-        ),
-        const Text(
-          '구매요청 리스트',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
-        ),
-        Expanded(
-          child: FutureBuilder<List<Notify>?>(
-            future: getNotiList(),
-            builder: (context, snapshot) {
-              if (!snapshot.hasData) {
-                return const Expanded(child: BottomCircleProgressBar());
-              }
+    return SafeArea(
+      child: Scaffold(
+        body: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          child: Column(
+            children: [
+              const SizedBox(
+                height: 20,
+              ),
+              const Text(
+                '구매요청 리스트',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+              ),
+              const SizedBox(
+                height: 20,
+              ),
+              FutureBuilder<List<Notify>?>(
+                future: getNotiList(),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) {
+                    return const Expanded(child: BottomCircleProgressBar());
+                  }
 
-              if (snapshot.data!.isEmpty) {
-                return const Center(
-                  child: TopImage(),
-                );
-              }
+                  if (snapshot.data!.isEmpty) {
+                    return const Center(
+                      child: TopImage(),
+                    );
+                  }
 
-              return ListView.separated(
-                separatorBuilder: (context, index) => const SizedBox(
-                  height: 20,
-                ),
-                physics: const NeverScrollableScrollPhysics(),
-                shrinkWrap: true,
-                itemCount: snapshot.data!.length,
-                itemBuilder: (BuildContext context, int index) {
-                  return snapshot.data![index];
+                  return ListView.separated(
+                    separatorBuilder: (context, index) => const SizedBox(
+                      height: 20,
+                    ),
+                    physics: const NeverScrollableScrollPhysics(),
+                    shrinkWrap: true,
+                    itemCount: snapshot.data!.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      return snapshot.data![index];
+                    },
+                  );
                 },
-              );
-            },
+              ),
+            ],
           ),
         ),
-      ],
+      ),
     );
   }
 }

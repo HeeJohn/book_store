@@ -1,27 +1,26 @@
-const db = require("../../mysql.js");
+const db = require("../../../mysql.js");
 
 function request(id, body, response) {
   console.log(`>> regidBooks.js >> data :  ${body}`);
-
+  console.log(`body-->${body.how}`);
   //----> sql
   let targetTable = "book";
-  let joinTable1 = "status";
-  let joinTable2 = "register_book";
+  let joinTable = "status";
   let commonColumn = "book_id";
   if(body.how =='book_id'){
-    body.how = `${joinTable1}.light+${joinTable1}.pencil+${joinTable1}.pen+${joinTable1}.dirty+${joinTable1}.fade+${joinTable1}.book_id+status.ripped`;
+    body.how = `${joinTable}.light+${joinTable}.pencil+${joinTable}.pen+${joinTable}.dirty+${joinTable}.fade+${joinTable}.book_id+status.ripped`;
   }
   let sql = `
     SELECT * 
     FROM ${targetTable}
-    JOIN ${joinTable1} ON ${targetTable}.${commonColumn} = ${joinTable1}.${commonColumn}
-    JOIN ${joinTable2} ON ${targetTable}.${commonColumn} = ${joinTable2}.${commonColumn}
-    WHERE ${joinTable2}.STUDENT_ID = ?
-    ORDER BY ? DESC;
+    JOIN ${joinTable} ON ${targetTable}.${commonColumn} = ${joinTable}.${commonColumn}
+    WHERE ${targetTable}.STUDENT_ID = ?
+    ORDER BY (${body.how})  ${body.order};
   `;
 
-  let param = [id,body.how];
-
+  let param = [id];
+  console.log(sql);
+  console.log(param);
   db.query(
     sql, param,
     function (error, result) {

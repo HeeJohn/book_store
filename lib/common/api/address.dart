@@ -29,6 +29,10 @@ const tableSearchURL = '/tableSearch';
 const personInfoURL = '/personInfo';
 const notBoxURL = '/notBox';
 const delNotBoxURL = '/delNotBox';
+const updateNotBoxURL = '/updateNotBox';
+const readMeetingURL = '/readMeeting';
+const searchBooksURL = '/searchBooks';
+
 /*---------------- current device url --------------*/
 const iosSimulatorIP = 'http://localhost:3000';
 const androidEmulatorIP = 'http://10.0.2.2:3000';

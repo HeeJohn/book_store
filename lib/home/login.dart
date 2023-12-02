@@ -35,7 +35,6 @@ class _LogInScreenState extends State<LogInScreen> {
   }
 
   @override
-  @override
   Widget build(BuildContext context) {
     bool isOnKeyBoard = MediaQuery.of(context).viewInsets.bottom != 0;
     return MainLayout(
