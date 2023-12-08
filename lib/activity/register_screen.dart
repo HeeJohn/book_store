@@ -1,9 +1,9 @@
 import 'dart:convert';
-import 'dart:io';
 import 'package:db/activity/common/bottom_sheet.dart';
 import 'package:db/activity/common/registered_book.dart';
 import 'package:db/common/api/address.dart';
 import 'package:db/common/api/models/book_model.dart';
+import 'package:db/common/api/models/class_model.dart';
 import 'package:db/common/api/request.dart';
 import 'package:db/common/const/color.dart';
 import 'package:db/common/local_storage/const.dart';
@@ -24,22 +24,118 @@ class _RegisterScreenState extends State<RegisterScreen> {
   TextEditingController bookPriceCTR = TextEditingController();
   TextEditingController bookPublishDateCTR = TextEditingController();
   TextEditingController bookPublisherCTR = TextEditingController();
-  String? bookName, bookOwner, bookPublisher, bookPublishedDate, classCode;
+  TextEditingController bookAuthorCTR = TextEditingController();
+  String? bookName, bookPublishDate;
+  int? classID;
   String? bookPrice, bookRGDate, className;
-  List<int> stateNum = [2, 2, 2, 2, 2, 2];
-  List<ValueChanged> onSliderChanged = [];
+  List<int> stateNum = List<int>.filled(label.length, 0);
+  Map<int, ClassModel> recomClassModels = {};
+  List<void Function(double, int)> polledValue = [];
   int sum = 0;
   static const List<String> label = ['찢김', '하이라이트', '연필자국', '펜자국', '바램', '더러움'];
   late DateTime today;
   late String? sessionID;
-  File? bookImage;
+  List<BookModel> registeredBooks = [];
+  List<BookState> registeredBooksState = [];
+  bool latestButton = false;
+  bool stateButton = false;
+  bool priceButton = false;
+  String how = 'price', order = 'ASC';
 
-  void tapOnBookPhoto() {}
-  void onBookTap(bookCode) {}
-  void onDonePressed() {}
-  void refresh(val) {
+  void onDonePressed() async {
+    if (bookPublishDate != null && classID != null) {
+      Map<String, dynamic> bookData = {
+        'publisher': bookPublisherCTR.text,
+        'name': bookNameCTR.text,
+        'price': bookPriceCTR.text,
+        'bookPublishedDate': bookPublishDate,
+        'author': bookAuthorCTR.text,
+        'classID': classID!,
+        'bookStateList': stateNum,
+        'upload_time':
+            "${DateTime.now().year}-${DateTime.now().month}-${DateTime.now().day}-${DateTime.now().hour}-${DateTime.now().minute}",
+      };
+      print(bookData);
+      final bookSend = ApiService();
+      final sessionID = await storage.read(key: sessionIDLS);
+
+      if (sessionID != null) {
+        final response =
+            await bookSend.postRequest(sessionID, addBookURL, bookData);
+        if ('success' == await bookSend.reponseMessageCheck(response)) {
+          setState(() {
+            Navigator.of(context).pop();
+          });
+        }
+      }
+    }
+  }
+
+  void onSearchRecomTap(val, classCode) {
     setState(() {
       className = val;
+      classID = classCode;
+      print(className);
+      print(classID);
+    });
+  }
+
+  void onSortPressed(String how, bool order) async {
+    switch (how) {
+      case 'price':
+        how = 'price';
+        break;
+      case 'status':
+        how = 'book_id';
+        break;
+      case 'latest':
+        how = 'upload_time';
+        break;
+      default:
+        how = 'price';
+    }
+    this.how = how;
+    this.order = order ? 'ASC' : 'DESC';
+    getBookInfo(this.how, this.order);
+  }
+
+  Future<bool> onSearchChanged(String? val, SearchController controller) async {
+    recomClassModels.clear();
+    ApiService classInfo = ApiService();
+    if (sessionID != null) {
+      dynamic response = await classInfo
+          .postRequest(sessionID!, tableSearchURL, {'text': val});
+      if ('success' == await classInfo.reponseMessageCheck(response)) {
+        dynamic received = await jsonDecode(response!.data);
+        if (await received['data'] != null) {
+          int size = await received['data'].length;
+          if (size != 0) {
+            print(received['data'][0]);
+            for (int i = 0; i < size; i++) {
+              recomClassModels.putIfAbsent(
+                  i, () => ClassModel.fromJson(received['data'][i]));
+            }
+          }
+          if (!controller.isOpen) {
+            controller.openView();
+          }
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  void pollVal(double val, int index) {
+    stateNum[index] = val.toInt();
+    print('============================');
+    print("val: $val, index : $index");
+    print('============================');
+    setState(() {
+      sum = 0;
+      for (var element in stateNum) {
+        sum += element;
+      }
     });
   }
 
@@ -50,43 +146,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
       DateTime.now().month,
       DateTime.now().day,
     );
-    onSliderChanged.add((val) {
-      setState(() {
-        stateNum[0] = val;
-      });
-    });
-    onSliderChanged.add((val) {
-      setState(() {
-        stateNum[1] = val;
-      });
-    });
-    onSliderChanged.add((val) {
-      setState(() {
-        stateNum[2] = val;
-      });
-    });
-    onSliderChanged.add((val) {
-      setState(() {
-        stateNum[3] = val;
-      });
-    });
-    onSliderChanged.add((val) {
-      setState(() {
-        stateNum[4] = val;
-      });
-    });
-    onSliderChanged.add((val) {
-      setState(() {
-        stateNum[5] = val;
-      });
-    });
 
+    for (int i = 0; i < label.length; i++) {
+      polledValue.add(pollVal);
+    }
     super.initState();
   }
 
   void onChanged(DateTime val) {
     setState(() {
-      bookPublishedDate = '${val.year}-${val.month}-${val.day}';
+      bookPublishDate = '${val.year}-${val.month}';
     });
   }
 
@@ -101,10 +170,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
             color: Colors.grey[100],
             height: MediaQuery.of(context).size.height / 3,
             child: CupertinoDatePicker(
-              minimumDate: DateTime(1900, 1, 1),
-              maximumDate: today,
-              initialDateTime: today,
-              mode: CupertinoDatePickerMode.date,
+              minimumYear: 1900,
+              maximumYear: DateTime.now().year,
+              initialDateTime: DateTime.now(),
+              mode: CupertinoDatePickerMode.monthYear,
               onDateTimeChanged: (DateTime date) => onChanged(date),
             ),
           ),
@@ -113,33 +182,55 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  Future<List<RegisterdBook>?> getBookInfo() async {
-    ApiService registeredBook = ApiService();
+  Future<List<RegisterdBook>?> getBookInfo(String how, String order) async {
+    print(how);
+    print(order);
+    ApiService regidBook = ApiService();
     sessionID = await storage.read(key: sessionIDLS);
     if (sessionID != null) {
-      final response =
-          await registeredBook.getRequest(sessionID!, registeredBookURL);
-      if ('success' == await registeredBook.reponseMessageCheck(response)) {
-        final List<Map<String, String>> books =
-            jsonDecode(response!.data['data']);
-        List<BookModel> registeredBooks =
-            books.map((e) => BookModel.fromJson(e)).toList();
+      final response = await regidBook
+          .getRequest(sessionID!, regidBooksURL, {'how': how, 'order': order});
+      if ('success' == await regidBook.reponseMessageCheck(response)) {
+        final books = jsonDecode(response!.data)['data'];
+        registeredBooks.clear();
+        try {
+          for (int i = 0; i < books.length; i++) {
+            registeredBooks.add(BookModel.fromJson(books[i]));
+            registeredBooksState.add(BookState.fromJson(books[i]));
+          }
+        } catch (e) {
+          print(e);
+        }
 
         return registeredBooks
-            .map(
-              (e) => RegisterdBook(
-                name: e.bookName,
-                bookImage: e.bookImage,
-                date: e.bookRGDate,
-                onTap: () => onBookTap,
-                price: e.bookPrice,
-              ),
-            )
+            .map((e) => RegisterdBook(
+                  name: e.bookName,
+                  uploadTime: e.uploadTime!,
+                  onTap: () => onBookTap(e),
+                  price: e.bookPrice,
+                ))
             .toList();
       }
     }
-
     return null;
+  }
+
+  void onBookTap(BookModel e) {}
+
+  void _onDismissed(int bookID) async {
+    ApiService removeBook = ApiService();
+    sessionID = await storage.read(key: sessionIDLS);
+    if (sessionID != null) {
+      final response = await removeBook.postRequest(
+        sessionID!,
+        removeBookURL,
+        {'bookID': bookID},
+      );
+
+      if ('success' == await removeBook.reponseMessageCheck(response)) {
+        setState(() {});
+      }
+    }
   }
 
   @override
@@ -163,18 +254,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
           context: context,
           builder: (BuildContext context) {
             return FloatingSheet(
-              bookImage: bookImage,
-              tapOnBookPhoto: tapOnBookPhoto,
+              authorController: bookAuthorCTR,
+              polledValue: polledValue,
+              onTap: onSearchRecomTap,
+              recomClassModels: recomClassModels,
+              onChanged: onSearchChanged,
               sum: sum,
-              onSliderChanged: onSliderChanged,
               label: label,
               bookState: stateNum,
               className: className,
-              refresh: refresh,
               comController: bookPublisherCTR,
               nameController: bookNameCTR,
               priceController: bookPriceCTR,
-              publishedDate: bookPublishedDate,
+              publishedDate: bookPublishDate,
               onDatePressed: pickDate,
               title: "책을 등록하세요",
               onDonePressed: onDonePressed,
@@ -188,35 +280,115 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ),
       ),
       children: [
+        const SizedBox(
+          height: 20,
+        ),
         const Text(
           "등록된 책 리스트",
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
         ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            ElevatedButton(
+              style: ButtonStyle(
+                  backgroundColor: MaterialStateProperty.all(
+                latestButton ? (Colors.grey) : Colors.purple[100],
+              )),
+              onPressed: () => {
+                onSortPressed('latest', latestButton),
+                latestButton = !latestButton,
+                setState(() {}),
+              },
+              child: const Text('최신순'),
+            ),
+            ElevatedButton(
+              style: ButtonStyle(
+                  backgroundColor: MaterialStateProperty.all(
+                priceButton ? (Colors.grey) : Colors.purple[100],
+              )),
+              onPressed: () => {
+                onSortPressed('price', priceButton),
+                priceButton = !priceButton,
+                setState(() {}),
+              },
+              child: const Text('가격순'),
+            ),
+            ElevatedButton(
+              style: ButtonStyle(
+                  backgroundColor: MaterialStateProperty.all(
+                stateButton ? (Colors.grey) : Colors.purple[100],
+              )),
+              onPressed: () => {
+                onSortPressed('status', stateButton),
+                stateButton = !stateButton,
+                setState(() {}),
+              },
+              child: const Text('상태순'),
+            ),
+          ],
+        ),
         Expanded(
           child: FutureBuilder<List<RegisterdBook>?>(
-            future: getBookInfo(),
+            future: getBookInfo(how, order),
             builder: (context, snapshot) {
+              print(snapshot.data);
               if (!snapshot.hasData) {
                 return const BottomCircleProgressBar();
               }
-
-              if (snapshot.data == null) {
-                return SizedBox(
-                  width: MediaQuery.of(context).size.width * 1 / 10,
-                  child: Image.asset(
-                    'asset/img/writing.png',
-                    fit: BoxFit.contain,
-                  ),
+              if (snapshot.data!.isEmpty) {
+                return Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text(
+                      '등록된 책이 없습니다.',
+                      style: TextStyle(
+                        fontSize: 20,
+                      ),
+                    ),
+                    SizedBox(
+                      width: MediaQuery.of(context).size.width / 2,
+                      child: Image.asset(
+                        'asset/img/writing.png',
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+                  ],
                 );
               }
 
               return ListView.builder(
-                physics: const NeverScrollableScrollPhysics(),
-                shrinkWrap: true,
                 itemCount: snapshot.data!.length,
-                itemBuilder: (BuildContext context, int index) {
-                  return snapshot.data![index];
-                },
+                itemBuilder: (context, index) => Dismissible(
+                  key: Key(snapshot.data![index].name),
+                  confirmDismiss: (direction) {
+                    return showDialog(
+                        context: context,
+                        builder: (context) {
+                          return AlertDialog(
+                            title: const Text('책 삭제'),
+                            content: Text(
+                                '"${snapshot.data![index].name}" 책을 삭제하시겠습니까?'),
+                            actions: <Widget>[
+                              ElevatedButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                                child: const Text('CANCEL'),
+                              ),
+                              ElevatedButton(
+                                onPressed: () {
+                                  _onDismissed(registeredBooks[index].bookId!);
+                                  Navigator.of(context).pop();
+                                },
+                                child: const Text('DELETE'),
+                              ),
+                            ],
+                          );
+                        });
+                  },
+                  child: snapshot.data![index],
+                ),
               );
             },
           ),

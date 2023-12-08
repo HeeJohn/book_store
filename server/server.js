@@ -4,18 +4,24 @@ const ctr = require("./RESTAPI/controller.js");
 
 const app = http.createServer(function (request, response) {
   const targetUrl = request.url;
+  const method = request.method;
+  console.log(">> server.js >> METHOD:", method);
+  console.log(">> server.js >> RUNTIMETYPE METHOD:", typeof method);
   let requestData = "";
-  const headers = request.headers['authorization'];
-  console.log("Headers:", headers);
-  const sessionID = headers.substring('Basic'.length);
-  request.on("data", function (stream) {
-    requestData += stream;
-  });
+  const headers = request.headers["authorization"];
+  console.log(">> server.js >> Headers:", headers);
+  const sessionID = headers.substring("Basic ".length).trim();
+  console.log(`>> server.js >> ${sessionID}`);
 
-  request.on("end", function () {
-    let parsedData = JSON.parse(requestData);
-    console.log(parsedData);
-    ctr.controller(targetUrl, parsedData, sessionID, response);
-  });
+    request.on("data", function (stream) {
+      requestData += stream;
+    });
+
+    request.on("end", function () {
+      let parsedData = JSON.parse(requestData);
+      console.log(`>> server.js >> ${parsedData}`);
+      ctr.controller(targetUrl, parsedData, sessionID, response);
+    });
+  
 });
 app.listen(3000);

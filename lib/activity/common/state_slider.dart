@@ -1,15 +1,26 @@
 import 'package:flutter/material.dart';
 
-class StateSlider extends StatelessWidget {
+class StateSlider extends StatefulWidget {
   final String label;
-  final void Function(double)? onSliderChanged;
-  final double value;
+  final Function(double) pollValue;
   const StateSlider({
     super.key,
-    required this.value,
-    required this.onSliderChanged,
     required this.label,
+    required this.pollValue,
   });
+
+  @override
+  State<StateSlider> createState() => _StateSliderState();
+}
+
+class _StateSliderState extends State<StateSlider> {
+  double? value;
+
+  @override
+  void initState() {
+    value = 1.0;
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -17,7 +28,7 @@ class StateSlider extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Text(
-          label,
+          widget.label,
           style: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w500,
@@ -25,10 +36,16 @@ class StateSlider extends StatelessWidget {
         ),
         Slider(
           divisions: 2,
-          value: value,
+          value: value!,
           min: 1,
           max: 3,
-          onChanged: onSliderChanged,
+          onChanged: (val) {
+            setState(() {
+              value = val;
+              widget.pollValue(val);
+              print("from slider : $val");
+            });
+          },
           label: value == 1 ? '나쁨' : (value == 2 ? '보통' : '좋음'),
         ),
       ],

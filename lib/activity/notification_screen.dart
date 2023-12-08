@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:db/common/api/address.dart';
+import 'package:db/common/api/models/meeting_model.dart';
 import 'package:db/common/api/request.dart';
 import 'package:db/common/const/color.dart';
 import 'package:db/common/local_storage/const.dart';
@@ -8,82 +9,129 @@ import 'package:db/home/common/top_image.dart';
 import 'package:db/home/splash.dart';
 import 'package:flutter/material.dart';
 
-class NotificationScreen extends StatelessWidget {
+class NotificationScreen extends StatefulWidget {
   const NotificationScreen({super.key});
+
+  @override
+  State<NotificationScreen> createState() => _NotificationScreenState();
+}
+
+class _NotificationScreenState extends State<NotificationScreen> {
+  List<MeetingModel> meetingList = [];
+
+  void onAcceptPressed(MeetingModel meetingModel) async {
+    ApiService toMeeUpList = ApiService();
+    final sessionID = await storage.read(key: sessionIDLS);
+    if (sessionID != null) {
+      final response = await toMeeUpList.getRequest(
+        sessionID,
+        updateNotBoxURL,
+        {
+          'bookID': meetingModel.bookID,
+          'flag': 1,
+        },
+      );
+      if ('success' == await toMeeUpList.reponseMessageCheck(response)) {
+        setState(() {});
+      }
+    }
+  }
+
+  void onRejectPressed(MeetingModel meetingModel) async {
+    ApiService delNotBox = ApiService();
+    final sessionID = await storage.read(key: sessionIDLS);
+    if (sessionID != null) {
+      final response = await delNotBox.postRequest(
+        sessionID,
+        delNotBoxURL,
+        {'bookID': meetingModel.bookID},
+      );
+      if ('success' == await delNotBox.reponseMessageCheck(response)) {
+        setState(() {});
+      }
+    }
+  }
 
   Future<List<Notify>?> getNotiList() async {
     ApiService notification = ApiService();
     final sessionID = await storage.read(key: sessionIDLS);
     if (sessionID != null) {
-      final response = await notification.getRequest(sessionID, notifyURL);
+      final response = await notification.getRequest(
+        sessionID,
+        notBoxURL,
+        {'flag': 0},
+      );
       if ('success' == await notification.reponseMessageCheck(response)) {
-        final List<Map<String, String>> data =
-            jsonDecode(response!.data['data']);
-        return null;
+        final data = jsonDecode(response!.data)['data'];
+        print(data.length);
+        meetingList.clear();
+        for (int i = 0; i < data.length; i++) {
+          print(data[i]);
+          meetingList.add(MeetingModel.fromJson(data[i]));
+        }
+        print(meetingList.length);
+        return meetingList
+            .map((e) => Notify(
+                  buyer: e.buyer,
+                  bookName: e.bookName,
+                  onAcceptPressed: () => onAcceptPressed(e),
+                  onRejectPressed: () => onRejectPressed(e),
+                  bookPrice: e.price.toString(),
+                ))
+            .toList();
       }
     }
-    return [
-      Notify(
-        buyer: "서희준",
-        bookName: "항공우주학개론",
-        onPressed: () {},
-        bookPrice: "50000",
-      ),
-      Notify(
-        buyer: "서희준",
-        bookName: "항공우주학개론",
-        onPressed: () {},
-        bookPrice: "50000",
-      ),
-      Notify(
-        buyer: "서희준",
-        bookName: "항공우주학개론",
-        onPressed: () {},
-        bookPrice: "50000",
-      )
-    ];
+    return null;
   }
 
   @override
   Widget build(BuildContext context) {
-    return MainLayout(
-      children: [
-        const SizedBox(
-          height: 20,
-        ),
-        const Text(
-          '구매요청 리스트',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
-        ),
-        Expanded(
-          child: FutureBuilder<List<Notify>?>(
-            future: getNotiList(),
-            builder: (context, snapshot) {
-              if (!snapshot.hasData) {
-                return const Expanded(child: BottomCircleProgressBar());
-              }
+    return SafeArea(
+      child: Scaffold(
+        body: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          child: Column(
+            children: [
+              const SizedBox(
+                height: 20,
+              ),
+              const Text(
+                '구매요청 리스트',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+              ),
+              const SizedBox(
+                height: 20,
+              ),
+              FutureBuilder<List<Notify>?>(
+                future: getNotiList(),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) {
+                    return const Expanded(child: BottomCircleProgressBar());
+                  }
 
-              if (snapshot.data == null) {
-                return const Center(
-                  child: TopImage(),
-                );
-              }
+                  if (snapshot.data!.isEmpty) {
+                    return const Center(
+                      child: TopImage(),
+                    );
+                  }
 
-              return ListView.separated(
-                separatorBuilder: (context, index) => const SizedBox(
-                  height: 20,
-                ),
-                physics: const NeverScrollableScrollPhysics(),
-                shrinkWrap: true,
-                itemCount: snapshot.data!.length,
-                itemBuilder: (BuildContext context, int index) {
-                  return snapshot.data![index];
+                  return ListView.separated(
+                    separatorBuilder: (context, index) => const SizedBox(
+                      height: 20,
+                    ),
+                    physics: const NeverScrollableScrollPhysics(),
+                    shrinkWrap: true,
+                    itemCount: snapshot.data!.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      return snapshot.data![index];
+                    },
+                  );
                 },
-              );
-            },
+              ),
+            ],
           ),
         ),
-      ],
+      ),
     );
   }
 }
@@ -92,13 +140,15 @@ class Notify extends StatelessWidget {
   final String buyer;
   final String bookName;
   final String bookPrice;
-  final VoidCallback onPressed;
+  final VoidCallback onAcceptPressed;
+  final VoidCallback onRejectPressed;
 
   const Notify({
     super.key,
     required this.buyer,
     required this.bookName,
-    required this.onPressed,
+    required this.onRejectPressed,
+    required this.onAcceptPressed,
     required this.bookPrice,
   });
   @override
@@ -114,78 +164,72 @@ class Notify extends StatelessWidget {
         ),
       ),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Expanded(
-            child: Column(
-              children: [
-                const Icon(
-                  Icons.person_2,
-                ),
-                Text(
-                  buyer,
-                ),
-              ],
-            ),
+          Column(
+            children: [
+              const Icon(
+                Icons.person_2,
+              ),
+              Text(
+                buyer,
+              ),
+            ],
           ),
-          const Expanded(
-            child: Column(
-              children: [
-                Icon(
-                  Icons.attach_money,
-                ),
-                Text(
-                  '구매요청',
-                ),
-              ],
-            ),
+          const Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.attach_money,
+              ),
+              Text(
+                '구매요청',
+              ),
+            ],
           ),
-          Expanded(
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      IconButton(
-                        onPressed: onPressed,
-                        icon: const Icon(
-                          Icons.check_circle_outline,
-                          color: Colors.blue,
-                        ),
-                      ),
-                      const Text(
-                        '수락',
-                      ),
-                    ],
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  IconButton(
+                    onPressed: onAcceptPressed,
+                    icon: const Icon(
+                      Icons.check_circle_outline,
+                      color: Colors.blue,
+                    ),
                   ),
-                ),
-                Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      IconButton(
-                        onPressed: onPressed,
-                        icon: const Icon(
-                          Icons.check_circle,
-                          color: Colors.red,
-                        ),
-                      ),
-                      const Text(
-                        '거절',
-                      ),
-                    ],
+                  const Text(
+                    '수락',
                   ),
-                ),
-              ],
-            ),
+                ],
+              ),
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  IconButton(
+                    onPressed: onRejectPressed,
+                    icon: const Icon(
+                      Icons.check_circle,
+                      color: Colors.red,
+                    ),
+                  ),
+                  const Text(
+                    '거절',
+                  ),
+                ],
+              ),
+            ],
           ),
-          Expanded(
-            child: Column(
-              children: [
-                Text(bookName),
-                Text(bookPrice),
-              ],
-            ),
+          Column(
+            children: [
+              Text(
+                bookName,
+              ),
+              Text(bookPrice),
+            ],
           ),
         ],
       ),

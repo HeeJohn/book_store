@@ -12,15 +12,26 @@ const bookScreen = '/book';
 const meetUpListScreen = '/meetUpList';
 
 /*---------------- url --------------*/
-const registeredBookURL = '/registeredBook';
+const regidBooksURL = '/regidBooks';
+const removeBookURL = '/removeBook';
+const addBookURL = '/addBook';
 const notifyURL = '/notify';
 const imageURL = '/image';
 const signUpURL = '/signup';
-const tableURL = '/table';
+const myTableURL = '/myTable';
+const delMyTableURL = '/delMyTable';
 const logInURL = '/';
+const logOutURL = '/logout';
 const splashURL = '/splash';
 const gpsURL = '/geo';
-const addTableURL = '/addTable';
+const tableAddURL = '/tableAdd';
+const tableSearchURL = '/tableSearch';
+const personInfoURL = '/personInfo';
+const notBoxURL = '/notBox';
+const delNotBoxURL = '/delNotBox';
+const updateNotBoxURL = '/updateNotBox';
+const readMeetingURL = '/readMeeting';
+const searchBooksURL = '/searchBooks';
 
 /*---------------- current device url --------------*/
 const iosSimulatorIP = 'http://localhost:3000';

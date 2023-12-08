@@ -57,29 +57,15 @@ class RectularExp {
         focusNode.requestFocus();
         return '전화번호를 입력하세요';
       } else {
-        String patternKR = r'^010-?([0-9]{4})-?([0-9]{4})$';
+        String patternKR = r'^010([0-9]{4})([0-9]{4})$';
 
         RegExp regExpKR = RegExp(patternKR);
 
         if (!regExpKR.hasMatch(value)) {
           focusNode.requestFocus(); // focusing on this textformfield
-          return '잘못된 형식의 전화번호';
-        }
-
-        if (regExpKR.hasMatch(value)) {
-          return validatePhoneNumberKR(value);
+          return '010으로 시작하는 8자리 번호를 입력하세요.';
         }
       }
-    }
-    return null;
-  }
-
-  static String? validatePhoneNumberKR(String value) {
-    String patternKR = r'^010-?([0-9]{4})-?([0-9]{4})$';
-    RegExp regExpKR = RegExp(patternKR);
-
-    if (!regExpKR.hasMatch(value)) {
-      return '010으로 시작하는 8자리 번호를 입력하세요.';
     }
     return null;
   }
@@ -91,25 +77,18 @@ class RectularExp {
         focusNode.requestFocus();
         return '비밀번호를 입력하세요.';
       } else {
-        // Check length
         if (value.length < 8 || value.length > 15) {
           focusNode.requestFocus();
           return '8-15자리의 비밀번호를 생성하세요.';
         }
-
-        // Check for special characters
         if (!RegExp(r'[!@#\$%^&*(),.?":{}|<>]').hasMatch(value)) {
           focusNode.requestFocus();
           return '특수문자 하나 이상이 필요합니다.';
         }
-
-        // Check for lowercase letters
         if (!RegExp(r'[a-z]').hasMatch(value)) {
           focusNode.requestFocus();
           return '소문자 하나 이상이 필요합니다.';
         }
-
-        // Check for numbers
         if (!RegExp(r'[0-9]').hasMatch(value)) {
           focusNode.requestFocus();
           return '숫자 하나 이상이 필요합니다.';
@@ -123,52 +102,19 @@ class RectularExp {
   static String? validateName(FocusNode focusNode, String value) {
     if (value.isEmpty) {
       focusNode.requestFocus();
-      return 'Put your name';
+      return '이름을 입력하세요.';
     }
 
-    // Check length
-    if (value.length < 4 || value.length > 20) {
+    if (value.length < 2 || value.length > 5) {
       focusNode.requestFocus();
-      return 'must be between 4 and 20 characters';
+      return '2자리에서 5자리 사이의 이름을 입력하세요.';
     }
 
-    // Check first letter
-    if (!RegExp(r'[A-Za-z]').hasMatch(value[0])) {
+    if (RegExp(r'^[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/').hasMatch(value)) {
       focusNode.requestFocus();
-      return 'Name must start with a letter';
+      return '이름은 한글만 포함할 수 있습니다.';
     }
 
-    // Check for allowed characters (letters and digits)
-    if (!RegExp(r'^[A-Za-z\d]+$').hasMatch(value)) {
-      focusNode.requestFocus();
-      return 'Name can only contain letters and digits';
-    }
-
-    return null; // Name is valid
-  }
-
-/* ---------------------- validation for age ---------------------- */
-  static String? validateAge(FocusNode focusNode, String value) {
-    if (value.isEmpty) {
-      focusNode.requestFocus();
-      return 'Put your age';
-    } else {
-      String pattern = r'^[0-9]{1,3}$';
-      RegExp regExp = RegExp(pattern);
-
-      if (!regExp.hasMatch(value)) {
-        focusNode.requestFocus();
-        return 'Age must be between 1 and 3 digits';
-      }
-
-      int? age = int.tryParse(value);
-
-      if (age == null || age < 16 || age > 100) {
-        focusNode.requestFocus();
-        return 'Age must be between 16 and 100';
-      }
-
-      return null;
-    }
+    return null;
   }
 }

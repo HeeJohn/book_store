@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:db/common/api/address.dart';
 import 'package:db/common/api/request.dart';
 import 'package:db/common/custom_textform.dart';
@@ -35,7 +37,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     /* 0: 전화번호, 1: 이름, 2: 학번, 3: 비밀번호 */
     signUpList = {
       'hintText': [
-        '전화번호 ex) 010-xxxx-xxxx',
+        '전화번호 ex) 01012345678',
         '이름 ex) 서희준',
         '학번 ex) 201901366',
         '비밀번호 ex) qweasd123!',
@@ -110,11 +112,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }
 
   void onChanged(String? val) {
-    if (_formKey.currentState!.validate()) {
-      hasError = false;
-    } else {
-      hasError = true;
-    }
+    setState(() {
+      if (_formKey.currentState!.validate()) {
+        hasError = false;
+      } else {
+        hasError = true;
+      }
+    });
   }
 
   // Check if the form input is valid and proceed accordingly.
@@ -146,7 +150,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
     if ('success' == await sign.reponseMessageCheck(response)) {
       nextPage();
     } else {
-      debugPrint('error sending singup info to the server');
+      setState(() {
+        hasError = true;
+        Timer(const Duration(seconds: 5), () {
+          nextPage();
+        });
+      });
     }
   }
 
@@ -182,9 +191,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 obscureText: signUpList['obscureText']![index],
                 autofocus: true,
                 hintText: signUpList['hintText']![index].toString(),
-                errorText: hasError
-                    ? signUpList['errorText']![index].toString()
-                    : null,
+                errorText: hasError ? "중복된 계정입니다." : null,
                 validator: signUpList['validator']![index],
                 focusNode: focusNode,
                 keyboardType:

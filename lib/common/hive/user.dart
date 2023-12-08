@@ -13,13 +13,9 @@ class UserData extends HiveObject {
   @HiveField(2)
   late String studentPhoneNum;
 
-  @HiveField(3)
-  late int sessionID;
-
   UserData({
     required this.studentID,
     required this.studentName,
     required this.studentPhoneNum,
-    required this.sessionID,
   });
 }

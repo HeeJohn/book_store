@@ -2,8 +2,8 @@ import 'dart:convert';
 import 'package:db/common/api/address.dart';
 import 'package:db/common/api/request.dart';
 import 'package:db/common/custom_textform.dart';
+import 'package:db/common/local_storage/const.dart';
 import 'package:db/home/common/layout.dart';
-import 'package:db/home/splash.dart';
 import 'package:flutter/material.dart';
 import 'package:db/common/regular_expression.dart';
 
@@ -34,7 +34,6 @@ class _LogInScreenState extends State<LogInScreen> {
     super.dispose();
   }
 
-  @override
   @override
   Widget build(BuildContext context) {
     bool isOnKeyBoard = MediaQuery.of(context).viewInsets.bottom != 0;
@@ -96,21 +95,26 @@ class _LogInScreenState extends State<LogInScreen> {
     );
   }
 
-  Future<String?> login(String authInfo) async {
+  Future<void> login(dynamic authInfo) async {
     final login = ApiService();
-    nextPage(bottomBar);
-    return null;
-    final response = await login.getRequest(
+    final response = await login.postRequest(
+      "login",
+      logInURL,
       authInfo,
-      splashURL,
     );
     final message = await login.reponseMessageCheck(response);
     if ('success' == message) {
-      saveUserInfo(jsonDecode(response!.data)['loggedUser']);
-      nextPage(searchScreen);
-      return null;
+      dynamic receivedData = jsonDecode(response!.data);
+
+      await storage.write(
+          key: sessionIDLS, value: receivedData['session_id'].toString());
+      //  saveUserInfo(jsonDecode(response.data)['loggedUser']);
+      nextPage(bottomBar);
     } else {
-      return message;
+      setState(() {
+        hasError = true;
+        errorText = '잘못된 아이디 혹은 비밀번호';
+      });
     }
   }
 
@@ -125,7 +129,7 @@ class _LogInScreenState extends State<LogInScreen> {
   void validInputCheck() {
     if (_formKeyId.currentState!.validate() &&
         _formKeyPassword.currentState!.validate()) {
-      login('$id:$password');
+      login({'phone': id, 'password': password});
     } else {
       setState(() {});
     }
