@@ -50,7 +50,7 @@
 | Name           | Role                                                                 |
 |----------------|----------------------------------------------------------------------|
 | HyoYoung Baek  | Design, UI Implementation, Backend Implementation, Client Request Handling, DB Design, Testing |
-| HeeJun Seo     | UI Implementation, Backend Design and Implementation, DB Design, SQL Processing, Testing, Optimization |
+| Huijun Seo     | UI Implementation, Backend Design and Implementation, DB Design, SQL Processing, Testing, Optimization |
 
 ---
 
